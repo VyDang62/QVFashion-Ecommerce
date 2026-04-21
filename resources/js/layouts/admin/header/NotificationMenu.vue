@@ -1,0 +1,270 @@
+<script setup>
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { Link, usePage, router } from '@inertiajs/vue3'
+
+const dropdownOpen = ref(false)
+const notifying = computed(() => unreadCount.value > 0)
+const dropdownRef = ref(null)
+
+const page = usePage()
+
+const notifications = ref(page.props.auth.notifications || [])
+const unreadCount = ref(page.props.auth.unread_count);
+
+watch(() => page.props.auth.unread_count, (newValue) => {
+    unreadCount.value = newValue
+})
+
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+const closeDropdown = () => {
+  dropdownOpen.value = false
+}
+
+const handleClickOutside = (event) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    closeDropdown()
+  }
+}
+
+const ticker = ref(0);
+let timer = null;
+
+const formatTime = (dateString) => {
+  ticker.value;
+  if (!dateString) return ''
+  
+  const now = new Date()
+  const past = new Date(dateString)
+  const diffInSeconds = Math.floor((now - past) / 1000)
+  
+  if (diffInSeconds < 60) return 'Vừa xong'
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60)
+  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`
+  
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  if (diffInHours < 24) return `${diffInHours} giờ trước`
+  
+  const diffInDays = Math.floor(diffInHours / 24)
+  return `${diffInDays} ngày trước`
+}
+
+const markAllAsRead = () => {
+  router.patch(route('admin.notifications.markAllAsRead'), {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      notifications.value.forEach(n => {
+        if (!n.read_at) n.read_at = new Date().toISOString()
+      })
+      unreadCount.value = 0
+    }
+  });
+  closeDropdown()
+}
+
+const handleItemClick = (notification) => {
+  //Điều hướng dựa trên loại thông báo
+  const type = notification.data?.type;
+  
+  switch (type) {
+    case 'new_order':
+      if (notification.data?.order_id) {
+        router.get(route('admin.orders.edit', notification.data.order_id));
+      } else {
+        router.get(route('admin.orders.index'));
+      }
+      break;
+
+    case 'low_stock':
+      router.get(route('admin.products.index'), { 
+        search: notification.data?.product_name || '' 
+      });
+      break;
+  }
+
+  if (!notification.read_at) {
+    router.patch(route('admin.notifications.markAsRead', notification.id), {}, {
+      preserveScroll: true,
+      onSuccess: () => {
+        notification.read_at = new Date().toISOString()
+        if (unreadCount.value > 0) unreadCount.value--
+      }
+    });
+  }
+  closeDropdown()
+}
+
+const handleViewAllClick = (event) => {
+  router.get(route('admin.notifications.index'), {}, {
+      preserveScroll: true,
+    });
+  closeDropdown()
+}
+
+onMounted(() => {
+  document.addEventListener('click',handleClickOutside)
+  timer = setInterval(() => {
+    ticker.value++;
+  }, 60000);
+  if (page.props.auth.user) {
+    window.Echo.private(`App.Models.User.${page.props.auth.user.id}`)
+      .notification((notification) => {
+        //Thêm thông báo mới vào đầu mảng
+        notifications.value.unshift({
+          id: notification.id,
+          data: notification.data, //Laravel gửi toàn bộ mảng từ toArray() vào đây
+          created_at: notification.created_at || new Date().toISOString(),
+          read_at: null
+        })
+        unreadCount.value++
+        
+      })
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+  clearInterval(timer);
+})
+
+const getNotificationStyle = (type) => {
+  switch (type){
+    case 'low_stock':
+      return {
+        wrapper: 'bg-orange-100 text-orange-600',
+        icon: `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`
+      }
+      case 'new_order':
+      return {
+        wrapper: 'bg-green-100 text-green-600',
+        icon: `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>`
+      }
+    default:
+      return {
+        wrapper: 'bg-blue-100 text-blue-600',
+        icon: `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+      }
+  }
+}
+</script>
+
+<template>
+  <div class="relative" ref="dropdownRef">
+    <button
+      class="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full hover:text-dark-900 h-11 w-11 hover:bg-gray-100 hover:text-gray-700"
+      @click="toggleDropdown"
+    >
+      <span
+        :class="{ hidden: !notifying, flex: notifying }"
+        class="absolute right-0 top-0.5 z-1 h-2 w-2 rounded-full bg-orange-400"
+      >
+        <span
+          class="absolute inline-flex w-full h-full bg-orange-400 rounded-full opacity-75 -z-1 animate-ping"
+        ></span>
+      </span>
+      <svg
+        class="fill-current"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M10.75 2.29248C10.75 1.87827 10.4143 1.54248 10 1.54248C9.58583 1.54248 9.25004 1.87827 9.25004 2.29248V2.83613C6.08266 3.20733 3.62504 5.9004 3.62504 9.16748V14.4591H3.33337C2.91916 14.4591 2.58337 14.7949 2.58337 15.2091C2.58337 15.6234 2.91916 15.9591 3.33337 15.9591H4.37504H15.625H16.6667C17.0809 15.9591 17.4167 15.6234 17.4167 15.2091C17.4167 14.7949 17.0809 14.4591 16.6667 14.4591H16.375V9.16748C16.375 5.9004 13.9174 3.20733 10.75 2.83613V2.29248ZM14.875 14.4591V9.16748C14.875 6.47509 12.6924 4.29248 10 4.29248C7.30765 4.29248 5.12504 6.47509 5.12504 9.16748V14.4591H14.875ZM8.00004 17.7085C8.00004 18.1228 8.33583 18.4585 8.75004 18.4585H11.25C11.6643 18.4585 12 18.1228 12 17.7085C12 17.2943 11.6643 16.9585 11.25 16.9585H8.75004C8.33583 16.9585 8.00004 17.2943 8.00004 17.7085Z"
+          fill=""
+        />
+      </svg>
+    </button>
+
+    <!-- Dropdown Start -->
+    <div
+      v-if="dropdownOpen"
+      class="absolute -right-[240px] mt-[17px] flex max-h-[440px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg sm:w-[361px] lg:right-0"
+    >
+      <div
+        class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100"
+      >
+        <div class="flex flex-col">
+          <h5 class="text-lg font-semibold text-gray-800">Thông báo</h5>
+          <button 
+              v-if="unreadCount > 0"
+              @click="markAllAsRead" 
+              class="text-xs text-blue-600 hover:text-blue-800 font-medium text-left"
+          >
+              Đánh dấu tất cả đã đọc
+          </button>
+        </div>
+
+        <button @click="closeDropdown" class="text-gray-500">
+          <svg
+            class="fill-current"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z"
+              fill=""
+            />
+          </svg>
+        </button>
+      </div>
+
+      <ul class="flex flex-col h-auto overflow-y-auto custom-scrollbar">
+        <li v-for="notification in notifications" :key="notification.id" @click="handleItemClick(notification)">
+          <a class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100" href="#">
+            
+            <span class="relative block w-10 h-10 rounded-full flex-shrink-0">
+              <div 
+                class="flex items-center justify-center w-10 h-10 rounded-full"
+                :class="getNotificationStyle(notification.data?.type).wrapper"
+                v-html="getNotificationStyle(notification.data?.type).icon"
+              >
+              </div>
+            </span>
+
+            <span class="block w-full">
+              <span class="mb-1 block text-theme-sm text-gray-800 leading-tight">
+                <span class="font-bold text-gray-900" v-if="notification.data?.label">
+                  {{ notification.data?.label }}: 
+                </span>
+                {{ notification.data?.message || 'Bạn có thông báo mới' }}
+              </span>
+
+              <span class="flex items-center gap-2 text-gray-500 text-theme-xs">
+                <span>{{ notification.data?.label || 'Thông báo' }}</span>
+                <span class="w-1 h-1 bg-gray-400 rounded-full"></span>
+                <span>{{ formatTime(notification.created_at) }}</span>
+              </span>
+            </span>
+            <div v-if="!notification.read_at" class="w-2 h-2 bg-orange-400 rounded-full mt-2 flex-shrink-0"></div>
+          </a>
+        </li>
+
+        <li v-if="notifications.length === 0" class="p-10 text-center text-gray-400 text-sm">
+          Không có thông báo nào.
+        </li>
+      </ul>
+
+      <Link
+        :href="route('admin.products.index')"
+        class="mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800"
+        @click="handleViewAllClick"
+      >
+        Xem tất cả thông báo
+    </Link>
+    </div>
+    <!-- Dropdown End -->
+  </div>
+</template>
+
