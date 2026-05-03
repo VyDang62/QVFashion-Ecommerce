@@ -89,7 +89,7 @@ const removeRow = (index) =>{
 <template>
     <AdminLayout>
         <Head title="Sửa phiếu nhập hàng" />
-        <PageBreadcrumb pageTitle="Chỉnh sửa phiếu nhập" parentName="Phiếu nhập" :parentRoute="route('admin.goodsreceipts.index')" />
+        <PageBreadcrumb pageTitle="Sửa phiếu nhập hàng" parentName="Phiếu nhập hàng" :parentRoute="route('admin.goodsreceipts.index')" />
         <div :class="[
             'mb-6 p-4 rounded-xl border flex justify-between items-center shadow-sm',
             props.goodsreceipt.receipt_status === 'pending' ? 'bg-yellow-50 border-yellow-200' : 
@@ -143,7 +143,7 @@ const removeRow = (index) =>{
                 >
                     <template #trigger>
                         <button type="button" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-                            DUYỆT NHẬP KHO
+                            DUYỆT PHIẾU
                         </button>
                     </template>
                 </ConfirmAction>
@@ -205,7 +205,7 @@ const removeRow = (index) =>{
             </ComponentCard>
 
             <div class="mt-6 flex justify-end" v-if="!isLocked">
-                <SubmitButton :processing="form.processing" label="LƯU PHIẾU NHẬP" loadingLabel="ĐANG LƯU..." />
+                <SubmitButton :processing="form.processing" label="CẬP NHẬT PHIẾU NHẬP HÀNG" loadingLabel="ĐANG LƯU..." />
             </div>
         </form>
     </AdminLayout>

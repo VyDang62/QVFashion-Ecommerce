@@ -27,15 +27,9 @@ class ShopController extends Controller
             ->orderBy('brand_name')
             ->get();
         
-        $sizeAttribute = Attribute::where('attribute_name', 'Size')->first();
-        $sizes = AttributeValue::where('attribute_id',$sizeAttribute->id)
-            ->select('id','value as name')
-            ->get();
-
-        $colorAttribute = Attribute::where('attribute_name','Color')->first();
-        $colors = AttributeValue::where('attribute_id',$colorAttribute->id)
-            ->select('id','value as name','hex_code')
-            ->get();
+        $availableAttributes = Attribute::with(['values' => function($q) {
+            $q->select('id', 'attribute_id', 'value as name', 'hex_code');
+        }])->get();
 
         $priceOptions = [
             ['id' => '0-6500000',           'name' => 'Dưới 6.5 triệu'],
@@ -87,6 +81,11 @@ class ShopController extends Controller
                     $subQuery->where('sku', 'ilike', "%{$searchTerm}%");
                 });
             });
+        }
+
+        //Lọc Flash Sale
+        if ($request->boolean('is_flash_sale')) {
+            $query->whereHas('activeFlashSales');
         }
 
         //Lọc theo giá
@@ -190,19 +189,26 @@ class ShopController extends Controller
             $brandIds = is_array($request->brands) ? $request->brands : [$request->brands];
             $query->whereIn('brand_id',$brandIds);
         }
-        //Lọc theo size
-        if($request->filled('sizes')){
-            $sizeIds = is_array($request->sizes) ? $request->sizes : [$request->sizes];
-            $query->whereHas('variants.attributeValues',function ($q) use ($sizeIds){
-                $q->whereIn('attribute_values.id',$sizeIds);
-            });
-        }
-        //Lọc theo màu
-        if ($request->filled('colors')) {
-            $colorIds = is_array($request->colors) ? $request->colors : [$request->colors];
-            $query->whereHas('variants.attributeValues', function($q) use ($colorIds) {
-                $q->whereIn('attribute_values.id', $colorIds);
-            });
+        //Lọc theo thuộc tính
+        if ($request->filled('attribute_values')) {
+            //Chuẩn hóa dữ liệu đầu vào luôn là một mảng
+            $valueIds = is_array($request->attribute_values) ? $request->attribute_values : [$request->attribute_values];
+            //Nhóm giá trị thuộc tính theo 'attribute_id' (Ví dụ: Nhóm Size: [M, L], Nhóm Màu: [Đỏ, Xanh])
+            $groupedValueIds = AttributeValue::whereIn('id', $valueIds)
+                ->get()
+                ->groupBy('attribute_id');
+
+            foreach ($groupedValueIds as $attrId => $ids) {
+                $idsCollection = collect($ids); 
+                $currentValueIds = $idsCollection->pluck('id')->toArray();
+                //Áp dụng logic lọc VÀ (AND) giữa các nhóm thuộc tính khác nhau
+                //Ví dụ: Nếu chọn Size M và Màu Đỏ thì sản phẩm phải vừa có Size M và màu Đỏ
+                $query->whereHas('variants.attributeValues', function($q) use ($currentValueIds) {
+                    //Trong cùng một nhóm (VD: Size), áp dụng logic lọc HOẶC (OR)
+                    //Ví dụ: Nếu chọn Size M và Size L thì Lấy sản phẩm có Size M HOẶC Size L.
+                    $q->whereIn('attribute_values.id', $currentValueIds);
+                });
+            }
         }
 
         $products = $query->paginate((int)$perPage)
@@ -211,10 +217,9 @@ class ShopController extends Controller
 
         return Inertia::render('customer/Shop', [
             'products' => $products,
-            'filters' => $request->only(['gender', 'product_types', 'sort', 'categories', 'brands', 'sizes', 'colors', 'prices','search']),
+            'filters' => $request->only(['gender', 'product_types', 'sort', 'categories', 'brands', 'attribute_values', 'prices', 'search', 'is_flash_sale']),
             'brands' => $brands,
-            'sizes' => $sizes,
-            'colors' => $colors,
+            'attributes' => $availableAttributes,
             'priceOptions' => $priceOptions, 
             'sortOptions' => $sortOptions,
         ]);

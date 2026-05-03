@@ -121,7 +121,7 @@ const {formatPrice} = useFormatter();
           <div class="absolute top-full left-1/2 -translate-x-1/2 mt-0 hidden group-hover:grid grid-cols-4 gap-8 bg-white text-black p-8 shadow-2xl w-[1000px] rounded-b-lg border-t-4 border-primary z-50">
             <div v-for="type in productTypes" :key="type.id" class="flex flex-col border-r border-gray-100 last:border-0 pr-4">
               <h3 class="font-black text-gray-600 uppercase text-xs tracking-[0.2em] mb-4">
-                <Link :href="route('shop.index', { slug: type.type_slug })" class="block px-2 py-2 rounded transition-all hover:bg-primary hover:text-white">
+                <Link :href="route('shop.index', {gender: [gender], slug: type.type_slug })" class="block px-2 py-2 rounded transition-all hover:bg-primary hover:text-white">
                   {{ type.type_name }}
                 </Link>
               </h3>

@@ -129,7 +129,7 @@ const handleForceDelete = (id) => {
                                 </Link>
                                 <DeleteAction
                                     v-if="can('categories.delete')"
-                                    :message="`Bạn có muốn tạm xóa danh mục này ${item.category_name}?. Bạn có thể hoàn tác tại trang ngừng hoạt động!`"
+                                    :message="`Bạn có chắc chắn muốn tạm xóa danh mục ${item.category_name}?`"
                                     :item="item"
                                     routeName="admin.categories.destroy"
                                     :displayName="item.category_name"    

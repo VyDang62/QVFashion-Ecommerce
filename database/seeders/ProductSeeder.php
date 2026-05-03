@@ -23,14 +23,13 @@ class ProductSeeder extends Seeder
 {
     public function run()
     {
-        $jsonPath = database_path('data/fwrd_final_data.json');
+        $jsonPath = database_path('data/products_vi.json');
         if (!File::exists($jsonPath)) {
             $this->command->error("Không tìm thấy file JSON!");
             return;
         }
         $jsonContent = File::get($jsonPath);
 
-        // 2. Kiểm tra file có bị trống không
         if (empty($jsonContent)) {
             $this->command->error("❌ LỖI: File JSON hoàn toàn trống rỗng!");
             return;
@@ -40,17 +39,14 @@ class ProductSeeder extends Seeder
         if (is_null($productsData)) {
             $error = json_last_error_msg();
             $this->command->error("Lỗi giải mã JSON: $error");
-            // Nếu Vy muốn soi kỹ hơn nội dung file khi lỗi:
             dd($jsonContent); 
             return;
         }
-        // 1. Tạo nhà cung cấp mặc định
         $supplier = Supplier::firstOrCreate(
-            ['supplier_name' => 'FWRD Global Supplier'],
-            ['phone' => '0123456789', 'supplier_address' => 'Global']
+            ['supplier_name' => 'Nhà cung cấp'],
+            ['phone' => '0123456789', 'supplier_address' => 'Việt Nam']
         );
 
-        // 2. Lấy user admin
         $admin = User::whereHas('roles', function($q){
             $q->where('name', 'super-admin');
         })->first() ?? User::first();
@@ -60,7 +56,6 @@ class ProductSeeder extends Seeder
             return;
         }
 
-        // 3. Tạo một phiếu nhập kho ban đầu
         $receipt = GoodsReceipt::create([
             'receipt_code' => 'GR-' . strtoupper(Str::random(8)),
             'supplier_id'  => $supplier->id,
@@ -76,7 +71,6 @@ class ProductSeeder extends Seeder
             if (empty($item['variants'])) continue;
 
             DB::transaction(function () use ($item, $receipt, &$totalReceiptCost) {
-                // --- 1. Xử lý Brand ---
                 $brand = Brand::firstOrCreate(
                     ['brand_name' => $item['brand_name']],
                     ['brand_slug' => Str::slug($item['brand_name'])]
@@ -88,9 +82,6 @@ class ProductSeeder extends Seeder
                 ];
                 $genderValue = $genderMap[$item['gender_id']] ?? Gender::FEMALE->value;
 
-                // --- 2. Xử lý Category Hierarchy với logic chống trùng Slug ---
-                
-                // --- CATEGORY CHA ---
                 $parentData = [
                     'category_name'   => $item['parent_category_text'],
                     'parent_id'       => null,
@@ -98,16 +89,13 @@ class ProductSeeder extends Seeder
                     'product_type_id' => $item['product_type_id']
                 ];
 
-                // Kiểm tra xem danh mục này (với các thuộc tính này) đã tồn tại chưa
                 $parentCat = Category::where($parentData)->first();
 
                 if (!$parentCat) {
-                    // Nếu chưa có, tạo slug duy nhất rồi mới create
                     $parentData['category_slug'] = $this->generateUniqueSlug($item['parent_category_text']);
                     $parentCat = Category::create($parentData);
                 }
 
-                // --- CATEGORY CON ---
                 $childData = [
                     'category_name'   => $item['child_category_text'],
                     'parent_id'       => $parentCat->id,
@@ -118,12 +106,10 @@ class ProductSeeder extends Seeder
                 $childCat = Category::where($childData)->first();
 
                 if (!$childCat) {
-                    // Tương tự, tạo slug duy nhất cho category con
                     $childData['category_slug'] = $this->generateUniqueSlug($item['child_category_text']);
                     $childCat = Category::create($childData);
                 }
 
-                // --- 3. Tạo Sản phẩm chính ---
                 $product = Product::updateOrCreate(
                     ['slug' => $item['slug']],
                     [
@@ -135,7 +121,6 @@ class ProductSeeder extends Seeder
                     ]
                 );
 
-                // 4. Hình ảnh
                 foreach ($item['images'] as $img) {
                     ProductImage::updateOrCreate(
                         [
@@ -146,7 +131,6 @@ class ProductSeeder extends Seeder
                     );
                 }
 
-                // 5. Biến thể và LÔ HÀNG
                 foreach ($item['variants'] as $vData) {
                     $qty = $vData['stock_quantity'] ?? 100;
                     $purchasePrice = round($vData['price'] * 0.7);
@@ -192,17 +176,12 @@ class ProductSeeder extends Seeder
         $this->command->info("Nạp dữ liệu thành công! Đã xử lý trùng lặp slug danh mục.");
     }
 
-    /**
-     * Hàm hỗ trợ tạo Slug duy nhất
-     */
     private function generateUniqueSlug($name)
     {
         $slug = Str::slug($name);
         $originalSlug = $slug;
         $i = 1;
 
-        // Vòng lặp kiểm tra trong DB, nếu tồn tại slug này rồi thì thêm số vào sau
-        // Ví dụ: strapless -> strapless-1 -> strapless-2
         while (Category::where('category_slug', $slug)->exists()) {
             $slug = $originalSlug . '-' . $i;
             $i++;

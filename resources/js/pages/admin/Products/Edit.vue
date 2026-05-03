@@ -13,6 +13,11 @@ import FileInput from '@/components/admin/forms/FormElements/FileInput.vue';
 import NumberInput from '@/components/ui/input/NumberInput.vue';
 import FileMultipleInput from '@/components/admin/forms/FormElements/FileMultipleInput.vue';
 import ToggleSwitch from '@/components/admin/forms/FormElements/ToggleSwitch.vue';
+
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
+
 const props = defineProps({
     product: Object,
     categories: Array,
@@ -170,10 +175,22 @@ const submit = () => {
         <form @submit.prevent="submit" class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20">
             <div class="lg:col-span-8 space-y-6">
                 <ComponentCard title="Thông tin chung">
-                    <InputLabel>Tên sản phẩm</InputLabel>
-                    <Input v-model="form.product_name" />
-                    <InputLabel class="mt-4">Mô tả chi tiết</InputLabel>
-                    <InputTextArea v-model="form.description" />
+                    <div class="space-y-4">
+                        <div>
+                            <InputLabel>Tên sản phẩm <span class="text-red-500">*</span></InputLabel>
+                            <Input v-model="form.product_name" />
+                        </div>
+                        <div>
+                            <InputLabel class="mt-4">Mô tả chi tiết</InputLabel>
+                            <div class="editor-container">
+                                <QuillEditor 
+                                    v-model:content="form.description"
+                                    contentType="html"
+                                    :options="editorOptions"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </ComponentCard>
 
                 <ComponentCard title="Biến thể & Thuộc tính">
@@ -182,7 +199,7 @@ const submit = () => {
                         <div class="grid grid-cols-4 gap-3 mb-4">
                             <div>
                                 <div class="flex justify-between items-center">
-                                    <InputLabel>SKU <span class="text-red-500">*</span></InputLabel>
+                                    <InputLabel>Mã định danh (SKU) <span class="text-red-500">*</span></InputLabel>
                                     <button 
                                         type="button" 
                                         @click="forceGenerateSKU(index)"
@@ -211,7 +228,7 @@ const submit = () => {
                         
                         <div class="grid grid-cols-2 gap-3">
                             <div v-for="attr in attributes" :key="attr.id">
-                                <InputLabel>{{ attr.attribute_name }}</InputLabel>
+                                <InputLabel>{{ attr.attribute_name }} <span class="text-red-500">*</span></InputLabel>
                                 <SingleSelect 
                                     v-model="v.attribute_values[attr.id]" 
                                     :options="attr.values" 
@@ -301,7 +318,7 @@ const submit = () => {
                 <ComponentCard title="Hình ảnh hiện tại">
                     <div class="space-y-4">
                         <div v-if="primaryImage">
-                            <InputLabel>Ảnh đại diện cũ</InputLabel>
+                            <InputLabel>Ảnh đại diện cũ <span class="text-red-500">*</span></InputLabel>
                             <img :src="'/storage/' + primaryImage" class="w-32 h-32 rounded-lg object-cover border">
                         </div>
                         <FileInput v-model="form.thumbnail" label="Tải ảnh đại diện mới" />

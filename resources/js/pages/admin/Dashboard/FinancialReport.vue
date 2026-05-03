@@ -30,14 +30,14 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-xs font-bold text-gray-600 uppercase">Lợi nhuận ròng (Net Profit)</p>
+          <p class="text-xs font-bold text-gray-600 uppercase">Lợi nhuận ròng</p>
           <h3 class="text-2xl font-black text-emerald-600 mt-1">{{ formatPrice(summary.net_profit) }}</h3>
           <p class="text-[10px] text-gray-600 mt-2 font-bold">* Đã trừ Giá vốn hàng bán & Thuế {{ taxRate * 100 }}%</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
           <p class="text-xs font-bold text-gray-600 uppercase">Dòng tiền thực thu</p>
           <h3 class="text-2xl font-black text-blue-600 mt-1">{{ formatPrice(summary.collected_cash) }}</h3>
-          <p class="text-[10px] text-blue-400 mt-2 font-bold">Tiền đã về ví</p>
+          <p class="text-[10px] text-blue-400 mt-2 font-bold">Tiền đã thu</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
           <p class="text-xs font-bold text-gray-600 uppercase">Dòng tiền đang treo</p>
@@ -51,68 +51,60 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-lg font-bold text-gray-800">Chi tiết</h3>
+      <DataTable
+          title="Chi tiết giao dịch"
+          :headers="tableHeaders"
+          :items="financialData.data"
+          :pagination="financialData"
+          v-model:search="searchTerm"
+          v-model:per-page="perPage"
+          searchPlaceholder="Tìm mã đơn hàng..."
+      >
+          <template #actions>
+              <div class="flex items-center gap-3">
+                  <button
+                      v-if="can('dashboard.export_financial')"
+                      @click="exportToExcel" 
+                      class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all text-sm font-bold shadow-sm"
+                  >
+                      <ExcelIcon/> Xuất Excel
+                  </button>
 
-            <div class="flex items-center gap-3">
-                <button
-                    v-if="can('dashboard.export_financial')"
-                    @click="exportToExcel" 
-                    class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all text-sm font-bold shadow-sm"
-                >
-                <ExcelIcon/>
-                    Xuất File Kế Toán (.xlsx)
-                </button>
+                  <button
+                      v-if="can('dashboard.export_financial')"
+                      @click="exportToPdf" 
+                      class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all text-sm font-bold shadow-md shadow-red-100"
+                  >
+                      <PdfIcon/> Xuất PDF
+                  </button>
+              </div>
+          </template>
 
-                <button
-                    v-if="can('dashboard.export_financial')"
-                    @click="exportToPdf" 
-                    class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all text-sm font-bold shadow-md shadow-red-100"
-                >
-                <PdfIcon/>
-                    Xuất PDF (.pdf)
-                </button>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold">
-              <tr>
-                <th class="px-6 py-4 text-xs font-medium">Mã đơn / Ngày</th>
-                <th class="px-6 py-4 text-xs text-right font-medium">Doanh thu thuần</th>
-                <th class="px-6 py-4 text-xs text-right font-medium ">Giá vốn (COGS)</th>
-                <th class="px-6 py-4 text-xs text-right font-medium">Voucher</th>
-                <th class="px-6 py-4 text-xs text-right font-medium">Lợi nhuận gộp</th>
-                <th class="px-6 py-4 text-xs text-center font-medium">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="order in financialData" :key="order.id" class="hover:bg-gray-50/50 transition-colors">
-                <td class="px-6 py-4">
-                  <p class="font-bold text-gray-800">#{{ order.order_code.substring(0, 8) }}</p>
-                  <p class="text-[10px] text-gray-400">{{ formatDate(order.created_at) }}</p>
-                </td>
-                <td class="px-6 py-4 text-right font-medium">{{ formatPrice(order.final_amount) }}</td>
-                <td class="px-6 py-4 text-right text-gray-500">{{ formatPrice(order.total_cogs) }}</td>
-                <td class="px-6 py-4 text-right text-red-400">-{{ formatPrice(order.discount_amount) }}</td>
-                <td class="px-6 py-4 text-right font-bold" :class="order.final_amount - order.total_cogs > 0 ? 'text-emerald-600' : 'text-red-500'">
-                  {{ formatPrice(order.final_amount - order.total_cogs) }}
-                </td>
-                <td class="px-6 py-4 text-center">
-                  <Badge :color="order.status_info.badge_admin">{{ order.status_info.label }}</Badge>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <template #row="{ item }">
+              <td class="px-6 py-4">
+                  <p class="font-bold text-gray-800">#{{ item.order_code.substring(0, 8) }}</p>
+                  <p class="text-[10px] text-gray-400">{{ formatDate(item.created_at) }}</p>
+              </td>
+              <td class="px-6 py-4 font-medium">{{ formatPrice(item.final_amount) }}</td>
+              <td class="px-6 py-4 text-gray-500">{{ formatPrice(item.total_cogs) }}</td>
+              <td class="px-6 py-4 text-red-400">
+                  <span v-if="item.discount_amount > 0">-{{ formatPrice(item.discount_amount) }}</span>
+                  <span v-else class="text-gray-300">--</span>
+              </td>
+              <td class="px-6 py-4 font-bold" :class="item.final_amount - item.total_cogs > 0 ? 'text-emerald-600' : 'text-red-500'">
+                  {{ formatPrice(item.final_amount - item.total_cogs) }}
+              </td>
+              <td class="px-6 py-4">
+                  <Badge :color="item.status_info.badge_admin">{{ item.status_info.label }}</Badge>
+              </td>
+          </template>
+      </DataTable>
     </div>
   </AdminLayout>
 </template>
 <script setup>
-import { reactive } from 'vue';
+import { reactive, ref, watch } from 'vue';
+import { debounce } from 'lodash';
 import { Head, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { useFormatter } from '@/composables/useFormatter';
@@ -121,6 +113,7 @@ import PdfIcon from '@/icons/PdfIcon.vue';
 import Badge from '@/components/admin/ui/Badge.vue';
 import PageBreadcrumb from '@/components/admin/common/PageBreadcrumb.vue';
 import { usePermission } from '@/composables/usePermission';
+import DataTable from '@/components/admin/tables/DataTable.vue';
 
 const props = defineProps({
     financialData: {
@@ -147,6 +140,24 @@ const props = defineProps({
         })
     }
 });
+const tableHeaders = ['Mã đơn / Ngày', 'Doanh thu thuần', 'Giá vốn (COGS)', 'Voucher', 'Lợi nhuận gộp', 'Trạng thái'];
+
+const searchTerm = ref(props.filters.search || '');
+const perPage = ref(props.filters.perPage || 10);
+
+watch([searchTerm, perPage], debounce(([newSearch, newPerPage]) => {
+    router.get(route('admin.dashboard.financialreport'), 
+        { ...filterForm, search: newSearch, perPage: newPerPage }, 
+        { 
+            preserveState: true, 
+            replace: true,
+            preserveScroll: true,
+            only: ['financialData', 'filters'] 
+        }
+    );
+}, 500));
+
+
 //Sử dụng Composable để định dạng dữ liệu
 const {can} = usePermission();
 const { formatPrice, formatDate } = useFormatter();

@@ -32,9 +32,9 @@ const updateStatus = (newStatus) => {
 </script>
 
 <template>
-    <Head :title="'Đơn hàng: #' + order.order_code" />
+    <Head :title="'Đơn hàng: ' + order.order_code" />
     <AdminLayout>
-        <PageBreadcrumb :pageTitle="'Chi tiết #' + order.order_code" parentName="Quản lý đơn hàng" :parentRoute="route('admin.orders.index')" />
+        <PageBreadcrumb :pageTitle="'Chi tiết đơn: ' + order.order_code" parentName="Quản lý đơn hàng" :parentRoute="route('admin.orders.index')" />
 
         <div class="flex flex-col gap-4 mb-6">
             <div :class="[
@@ -76,7 +76,7 @@ const updateStatus = (newStatus) => {
                         >
                             <template #trigger>
                                 <button type="button" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-                                    DUYỆT GIAO HÀNG
+                                    DUYỆT ĐƠN HÀNG
                                 </button>
                             </template>
                         </ConfirmAction>

@@ -79,7 +79,7 @@ watch([searchTerm,perPage], debounce(([newSearch, newPerPage]) => {
                             <Link v-if="can('roles.edit') && item.name !== 'super-admin'"  :href="route('admin.roles.edit', item.id)" class="text-gray-400 hover:text-blue-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/></svg>
                             </Link>
-                            <DeleteAction v-if="can('roles.delete') && item.name !== 'super-admin'" :message="`Bạn có muốn xóa vai trò ${item.name}?. Dữ liệu sẽ bị xóa vĩnh viễn!`" :item="item" routeName="admin.roles.destroy" :displayName="item.name" />
+                            <DeleteAction v-if="can('roles.delete') && item.name !== 'super-admin'" :message="`Bạn có chắc chắn muốn xóa vai trò ${item.name}?`" :item="item" routeName="admin.roles.destroy" :displayName="item.name" />
                         </div>
                     </td>
                 </template>

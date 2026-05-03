@@ -87,12 +87,12 @@ class VoucherService
 
         //Kiểm tra giá trị đơn hàng tối thiểu
         if ($eligibleTotal < $voucher->min_order_value) {
-            $this->throwError('Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->min_order_value) . 'đ cho các sản phẩm được áp dụng.');
+            $this->throwError('Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->min_order_value) . 'đ hoặc chưa được áp dụng cho các sản phẩm được chọn.');
         }
 
         //Tính toán con số giảm giá cuối cùng
         $discountAmount = 0;
-        if ($voucher->voucher_type === 'percentage') {
+        if ($voucher->voucher_type === VoucherType::PERCENTAGE) {
             $discountAmount = ($eligibleTotal * $voucher->discount_value) / 100;
             //Áp trần giảm giá nếu có max_discount_amount
             if ($voucher->max_discount_amount) {

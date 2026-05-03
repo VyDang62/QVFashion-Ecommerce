@@ -27,7 +27,7 @@ const successfulOrders = computed(() => {
 <template>
     <Head :title="'Người dùng: ' + user.full_name"/>
     <AdminLayout>
-        <PageBreadcrumb parentName="Người dùng" :parentRoute="route('admin.users.index')"/>
+        <PageBreadcrumb pageTitle="Thông tin người dùng" parentName="Người dùng" :parentRoute="route('admin.users.index')"/>
 
         <div class="mb-6 flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex items-center gap-4">
@@ -80,7 +80,6 @@ const successfulOrders = computed(() => {
 
                 <div class="bg-gray-900 p-6 rounded-3xl shadow-xl text-white relative overflow-hidden">
                     <svg class="absolute -right-4 -bottom-4 w-32 h-32 text-white/5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Giá trị khách hàng</h3>
                     <div class="space-y-4 relative z-10">
                         <div>
                             <p class="text-3xl font-black text-white">{{ formatPrice(totalSpent) }}</p>
@@ -117,7 +116,7 @@ const successfulOrders = computed(() => {
                             <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-width="2"/>
                             <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2"/>
                         </svg>
-                        Địa chỉ mặc định
+                        Địa chỉ
                     </div>
                     <div v-if="user.province" class="grid sm:grid-cols-2 gap-6">
                         <div>
@@ -162,7 +161,7 @@ const successfulOrders = computed(() => {
                                     </td>
                                 </tr>
                                 <tr v-if="!user.orders?.length">
-                                    <td colspan="4" class="px-6 py-8 text-center text-gray-600 italic text-sm py-2">Chưa có đơn hàng nào được thực hiện.</td>
+                                    <td colspan="4" class="px-6 py-8 text-center text-gray-600 italic text-sm py-2">Chưa có đơn hàng nào.</td>
                                 </tr>
                             </tbody>
                         </table>

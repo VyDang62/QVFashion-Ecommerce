@@ -23,12 +23,12 @@ const submit = () => {
         <PageBreadcrumb pageTitle="Thêm loại sản phẩm" parentName="Loại sản phẩm" :parentRoute="route('admin.producttypes.index')" />
 
         <form @submit.prevent="submit">
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div class="space-y-6">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 gap-6">
+                <div class="lg:col-span-8  space-y-6">
                     <ComponentCard title="Thông tin cơ bản">
                         <div class="space-y-4">
                             <div>
-                                <InputLabel>Loại sản phẩm</InputLabel>
+                                <InputLabel>Loại sản phẩm <span class="text-red-500">*</span></InputLabel>
                                 <Input v-model="form.type_name" placeholder="Nhập loại sản phẩm" :error="form.errors.type_name" />
                             </div>
                         </div>

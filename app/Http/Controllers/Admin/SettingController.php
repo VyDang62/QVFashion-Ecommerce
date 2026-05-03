@@ -113,6 +113,7 @@ class SettingController extends Controller implements HasMiddleware
                 }
 
                 if (!empty($changes)) {
+                    Cache::forget('site_settings_data');
                     $changedKeys = implode(', ', array_keys($changes));
                     
                     Logger::log(

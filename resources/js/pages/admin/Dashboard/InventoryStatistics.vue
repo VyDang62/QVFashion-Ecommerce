@@ -7,12 +7,12 @@
         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <p class="text-sm font-medium text-gray-500">Tổng giá trị vốn trong kho</p>
           <h4 class="text-2xl font-black text-gray-900 mt-2">{{ formatPrice(metrics.total_inventory_value) }}</h4>
-          <p class="text-xs text-blue-600 mt-2 font-bold">● Tổng tiền hàng chưa bán</p>
+          <p class="text-xs text-blue-600 mt-2 font-bold">Tổng tiền hàng chưa bán</p>
         </div>
         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <p class="text-sm font-medium text-gray-500">Vòng quay hàng tồn (30 ngày)</p>
           <h4 class="text-2xl font-black text-gray-900 mt-2">{{ metrics.turnover_rate }}x</h4>
-          <p class="text-xs text-emerald-600 mt-2 font-bold">↑ Tốc độ luân chuyển hàng</p>
+          <p class="text-xs text-emerald-600 mt-2 font-bold">Tốc độ luân chuyển hàng</p>
         </div>
         <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm">
           <p class="text-sm font-medium text-gray-500">Sản phẩm hết hàng</p>
@@ -23,7 +23,7 @@
 
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <h3 class="text-lg font-bold text-gray-800 mb-6">Nơi dòng vốn đang tập trung (Treemap)</h3>
+          <h3 class="text-lg font-bold text-gray-800 mb-6">Dòng vốn</h3>
           <VueApexCharts type="treemap" height="350" :options="treeMapOptions" :series="treeMapSeries" />
         </div>
 

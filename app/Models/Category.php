@@ -39,23 +39,31 @@ class Category extends Model
     protected static function booted()
     {
         static::creating(function ($category) {
-            if (empty($product->category_slug)) {
-                $slug = Str::slug($category->category_name);
-
-                $originalSlug = $slug;
-                $i = 1;
-                while (static::where('category_slug', $slug)->exists()) {
-                    $slug = $originalSlug . '-' . $i++;
-                }
-                
-                $category->category_slug = $slug;
+            if (empty($category->category_slug)) {
+                $category->category_slug = static::generateUniqueCategorySlug($category->category_name);
             }
         });
 
         static::updating(function ($category) {
-            $category->category_slug = Str::slug($category->category_name);
+            if ($category->isDirty('category_name')) {
+                $category->category_slug = static::generateUniqueCategorySlug($category->category_name, $category->id);
+            }
         });
+    }
+    private static function generateUniqueCategorySlug($name, $excludeId = null)
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $i = 1;
 
-        
+        while (static::where('category_slug', $slug)
+                    ->when($excludeId, function($query, $id) {
+                        return $query->where('id', '!=', $id);
+                    })
+                    ->exists()) {
+            $slug = $originalSlug . '-' . $i++;
+        }
+
+        return $slug;
     }
 }

@@ -50,6 +50,8 @@ class InventoryService
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            $batches = Batch::hydrate($batches->toArray());
+
             foreach ($batches as $batch) {
                 if ($quantityToRestore <= 0) break;
 
@@ -58,7 +60,9 @@ class InventoryService
                 if ($spaceInBatch > 0) {
                     $restoreAmount = min($quantityToRestore, $spaceInBatch);
 
-                    Batch::where('id', $batch->id)->increment('remaining_quantity', $restoreAmount);
+                    $batch->remaining_quantity += $restoreAmount;
+                    $batch->save();
+
                     $quantityToRestore -= $restoreAmount;
                 }
             }
@@ -66,7 +70,8 @@ class InventoryService
             if ($quantityToRestore > 0) {
                 $latestBatch = $batches->first();
                 if ($latestBatch) {
-                    $latestBatch->increment('remaining_quantity', $quantityToRestore);
+                    $latestBatch->remaining_quantity += $quantityToRestore;
+                    $latestBatch->save();
                 }
             }
         }

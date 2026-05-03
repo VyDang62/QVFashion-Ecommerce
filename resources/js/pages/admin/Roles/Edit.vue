@@ -46,7 +46,7 @@ const isGroupAllSelected = (modulePermissions) => {
     return modulePermissions.every(perm => form.permissions.includes(perm.name));
 };
 
-const protectedRoles = ['customer', 'super-admin', 'warehouse-manager', 'sale'];
+const protectedRoles = ['customer', 'super-admin', 'warehouse-manager', 'sales-staff'];
 
 const isProtectedRole = computed(() => {
     return props.role && protectedRoles.includes(props.role.name);
@@ -58,11 +58,11 @@ const submit = () => {
 </script>
 
 <template>
-    <Head :title="`Chỉnh sửa vai trò: ${role.name}`" />
+    <Head :title="`Sửa vai trò: ${role.name}`" />
 
     <AdminLayout>
         <PageBreadcrumb 
-            :pageTitle="`Chỉnh sửa: ${role.name}`" 
+            :pageTitle="`Sửa vai trò`" 
             parentName="Vai trò" 
             :parentRoute="route('admin.roles.index')" 
         />
@@ -80,7 +80,7 @@ const submit = () => {
                     />
                 </div>
             </ComponentCard>
-
+            
             <ComponentCard title="Phân quyền chi tiết">
                 <div class="space-y-6">
                     <div v-for="(perms, groupName) in permissionsGrouped" :key="groupName" 
@@ -117,9 +117,8 @@ const submit = () => {
                         </div>
                     </div>
                 </div>
-
-                    <SubmitButton :processing="form.processing" label="LƯU THAY ĐỔI" />
             </ComponentCard>
+            <SubmitButton :processing="form.processing" label="CẬP NHẬT THAY ĐỔI" />
         </form>
     </AdminLayout>
 </template>

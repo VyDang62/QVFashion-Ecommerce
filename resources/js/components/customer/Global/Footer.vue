@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="py-6 border-t border-gray-line">
+    <div class="py-6 border-t border-gray-line bg-black text-white">
       <div class="container mx-auto px-4 flex flex-wrap justify-between items-center">
         
         <div class="w-full lg:w-3/4 text-center lg:text-left mb-4 lg:mb-0">
@@ -91,7 +91,7 @@ const accountMenu = [
 const page = usePage();
 const socialLinks = [
   { name: 'Facebook', icon: '/assets/images/social_icons/facebook.svg', url: page.props.settings.facebook_link },
-  { name: 'Twitter', icon: '/assets/images/social_icons/twitter.svg', url: page.props.settings.twitter_link },
+  { name: 'X', icon: '/assets/images/social_icons/x.svg', url: page.props.settings.x_link },
   { name: 'Instagram', icon: '/assets/images/social_icons/instagram.svg', url: page.props.settings.instagram_link },
   { name: 'YouTube', icon: '/assets/images/social_icons/youtube.svg', url: page.props.settings.youtube_link },
 ];

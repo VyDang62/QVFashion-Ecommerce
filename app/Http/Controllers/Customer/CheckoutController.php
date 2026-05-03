@@ -173,7 +173,10 @@ class CheckoutController extends Controller
                     if ($data['fs_model']) {
                         $data['fs_model']->increment('sold_quantity', $data['quantity']);
                     }
+                    //Tăng order_count
+                    $data['item']->variant->product()->increment('order_count', $data['quantity']);
 
+                    //Gọi inventory service
                     $this->inventoryService->deductStock($data['item']->product_variant_id, $data['quantity']);
                 }
 

@@ -28,20 +28,20 @@ const submit = () => {
 <template>
     <Head :title="'Sửa: ' + productType.type_name" />
     <AdminLayout>
-        <PageBreadcrumb pageTitle="Chỉnh sửa loại sản phẩm" parentName="Loại sản phẩm" :parentRoute="route('admin.producttypes.index')" />
+        <PageBreadcrumb pageTitle="Sửa loại sản phẩm" parentName="Loại sản phẩm" :parentRoute="route('admin.producttypes.index')" />
 
-        <form @submit.prevent="submit" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <form @submit.prevent="submit" class="grid grid-cols-1 gap-6 lg:grid-cols-1 gap-6">
             
             <div class="lg:col-span-8 space-y-6">
                 <ComponentCard title="Thông tin cơ bản">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="col-span-2">
-                            <InputLabel>Loại sản phẩm</InputLabel>
+                            <InputLabel>Loại sản phẩm <span class="text-red-500">*</span></InputLabel>
                             <Input v-model="form.type_name" :error="form.errors.type_name" />
                         </div>
                     </div>
                 </ComponentCard>
-                <SubmitButton :processing="form.processing" label="LƯU LOẠI SẢN PHẨM" loadingLabel="ĐANG LƯU..." />
+                <SubmitButton :processing="form.processing" label="CẬP NHẬT LOẠI SẢN PHẨM" loadingLabel="ĐANG LƯU..." />
             </div>
         </form>
     </AdminLayout>

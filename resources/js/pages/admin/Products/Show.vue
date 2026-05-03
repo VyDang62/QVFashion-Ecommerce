@@ -42,7 +42,7 @@ const displayPrice = computed(() => {
                 <div>
                     <h2 class="text-xl font-bold text-gray-900">{{ product.product_name }}</h2>
                     <div class="flex gap-2 mt-1">
-                        <span v-if="product.deleted_at" class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase">Đang trong thùng rác</span>
+                        <span v-if="product.deleted_at" class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase">Đang tạm ngừng kinh doanh</span>
                         <span v-if="!product.is_active" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase">Tạm ẩn</span>
                         <span v-if="product.is_featured" class="text-[10px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-bold uppercase">Nổi bật</span>
                     </div>
@@ -51,7 +51,7 @@ const displayPrice = computed(() => {
             <div class="flex gap-3">
                 <Link v-if="can('products.edit')" :href="route('admin.products.edit', product.id)" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/></svg>
-                    CHỈNH SỬA
+                    SỬA SẢN PHẨM
                 </Link>
             </div>
         </div>

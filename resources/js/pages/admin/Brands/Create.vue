@@ -28,7 +28,7 @@ const submit = () => {
                     <ComponentCard title="Thông tin cơ bản">
                         <div class="space-y-4">
                             <div>
-                                <InputLabel>Thương hiệu</InputLabel>
+                                <InputLabel>Thương hiệu <span class="text-red-500">*</span></InputLabel>
                                 <Input v-model="form.brand_name" placeholder="Nhập thương hiệu" :error="form.errors.brand_name" />
                             </div>
                         </div>

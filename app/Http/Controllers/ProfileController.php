@@ -33,7 +33,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'full_name'      => ['required', 'string', 'max:255'],
-            'phone_number'   => ['nullable', 'string', 'max:20'],
+            'phone_number' => ['nullable', 'string', 'regex:/^(0)[0-9]{9}$/'],
             'province'           => ['nullable', 'string'],
             'province_id'           => ['nullable', 'integer'],
             'district'       => ['nullable', 'string'],
@@ -43,6 +43,7 @@ class ProfileController extends Controller
             'address_detail' => ['nullable', 'string', 'max:500'],
         ], [
             'full_name.required' => 'Vui lòng không để trống họ tên của bạn.',
+            'phone_number.regex'  => 'Số điện thoại không đúng định dạng!',
         ]);
         $user->fill($validated);
 

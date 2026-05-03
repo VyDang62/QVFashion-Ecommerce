@@ -135,7 +135,7 @@ const submit = () => {
                             THÊM GIÁ TRỊ
                         </button>
                     </ComponentCard>
-                    <SubmitButton :processing="form.processing" label="LƯU THUỘC TÍNH" loadingLabel="ĐANG LƯU..." />
+                    <SubmitButton :processing="form.processing" label="THÊM THUỘC TÍNH" loadingLabel="ĐANG LƯU..." />
                     
                 </div>
             </div>

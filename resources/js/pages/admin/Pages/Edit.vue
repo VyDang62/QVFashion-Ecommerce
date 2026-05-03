@@ -54,9 +54,9 @@ const editorOptions = {
 </script>
 
 <template>
-    <AdminLayout title="Chỉnh sửa trang tĩnh">
+    <AdminLayout title="Sửa trang tĩnh">
         <Head :title="'Sửa trang: ' + page.title" />
-        <PageBreadcrumb :pageTitle="'Sửa: ' + page.title" parentName="Trang tĩnh" :parentRoute="route('admin.pages.index')" />
+        <PageBreadcrumb pageTitle="Sửa trang tĩnh" parentName="Trang tĩnh" :parentRoute="route('admin.pages.index')" />
 
         <form @submit.prevent="submit" class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20">
             <div class="lg:col-span-8 space-y-6">
@@ -112,7 +112,7 @@ const editorOptions = {
                 </ComponentCard>
 
                 <div class="sticky top-6">
-                    <SubmitButton :processing="form.processing" label="LƯU THAY ĐỔI" class="w-full" />
+                    <SubmitButton :processing="form.processing" label="CẬP NHẬT TRANG TĨNH" class="w-full" />
                 </div>
             </div>
         </form>

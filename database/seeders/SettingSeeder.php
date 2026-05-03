@@ -64,11 +64,11 @@ class SettingSeeder extends Seeder
                 'description' => 'Đường dẫn trang facebook của website.',
             ],
             [
-                'key' => 'twitter_link',
+                'key' => 'x_link',
                 'value' => 'https://www.facebook.com/vydang6204/',
                 'type' => 'string',
                 'group' => 'general',
-                'description' => 'Đường dẫn trang twitter của website.',
+                'description' => 'Đường dẫn trang X của website.',
             ],
             [
                 'key' => 'instagram_link',

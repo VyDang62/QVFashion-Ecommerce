@@ -22,11 +22,12 @@ class UserProfileController extends Controller
         $validated = $request->validate([
             'full_name'    => 'required|string|max:255',
             'email'        => 'required|email|max:255|unique:users,email,' . $user->id,
-            'phone_number' => 'nullable|string|max:20',
+            'phone_number' => ['nullable','string','regex:/^(0)[0-9]{9}$/',],
         ], [
             'full_name.required' => 'Vui lòng nhập họ và tên!',
             'email.required'     => 'Email không được để trống!',
             'email.unique'       => 'Email này đã được sử dụng bởi một tài khoản khác!',
+            'phone_number.regex'  => 'Số điện thoại không đúng định dạng!',
         ]);
 
         $user->fill($validated);

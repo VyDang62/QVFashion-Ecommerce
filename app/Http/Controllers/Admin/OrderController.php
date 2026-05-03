@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\SingleOrderExport;
 use App\Helpers\Logger;
 use App\Http\Controllers\Controller;
+use App\Models\FlashSaleItem;
 use App\Models\Order;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
@@ -136,10 +137,9 @@ class OrderController extends Controller implements HasMiddleware
                     }
 
                     //Hoàn Flash Sale
-                    foreach ($order->details as $detail) {
-                        if ($detail->flash_sale_id) {
-                            DB::table('flash_sale_items')
-                                ->where('flash_sale_id', $detail->flash_sale_id)
+                    foreach($order->details as $detail){
+                        if($detail->flash_sale_id){
+                            FlashSaleItem::where('flash_sale_id', $detail->flash_sale_id)
                                 ->where('product_variant_id', $detail->product_variant_id)
                                 ->decrement('sold_quantity', $detail->quantity);
                         }

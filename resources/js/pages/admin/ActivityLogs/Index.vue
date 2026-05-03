@@ -38,7 +38,7 @@ watch([searchTerm, perPage, actionFilter], debounce(([newSearch, newPerPage, new
 }, 500));
 
 const getActionClass = (action) => {
-    if (!action) return 'bg-gray-100 text-gray-600';
+    if (!action) return 'light';
     
     const act = action.toLowerCase();
 

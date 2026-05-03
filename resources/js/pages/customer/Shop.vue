@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, watch, ref, computed } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import CustomerLayout from '@/layouts/customer/CustomerLayout.vue';
 import ShopProductCard from '@/components/customer/Global/ShopProductCard.vue';
 import pickBy from 'lodash/pickBy';
@@ -8,42 +8,119 @@ import ShopFilterDropdown from '@/components/customer/Global/ShopFilterDropdown.
 import ShopSortDropdown from '@/components/customer/Global/ShopSortDropdown.vue';
 import AppPaginate from '@/components/customer/Global/AppPaginate.vue';
 import { useFormatter } from '@/composables/useFormatter';
-
+import { onMounted } from 'vue';
 const props = defineProps({
     products: Object,
     filters: Object,
     brands: Array,
-    sizes: Array,
-    colors: Array,
+    attributes: Array,
     priceOptions: Array,
     sortOptions: Array,
 });
+const page = usePage();
+const getInitialFilters = () => {
+    const f = props.filters || {};
+    const menuData = page.props.menuCategories?.data || {}; 
+    
+    let urlGenders = (f.gender || []).map(String);
+    let urlTypes = (f.product_types || []).map(String);
+    let urlCats = (f.categories || []).map(String);
 
-const { formatPrice } = useFormatter();
+    let finalGenders = [...urlGenders];
+    let finalTypes = [];
+    let finalCats = [];
 
-const params = reactive({
-    gender: props.filters.gender || [], 
-    product_types: (props.filters.product_types || []).map(String), 
-    categories: (props.filters.categories || []).map(String),
-    brands: props.filters.brands || [],
-    sizes: props.filters.sizes || [],
-    colors: props.filters.colors || [],
-    prices: props.filters.prices || [],
-    sort: props.filters.sort || 'latest',
-    search: props.filters.search || '',
-});
+    const hasGenderInUrl = urlGenders.length > 0;
+    const isFilteringCats = urlCats.length > 0;
+    const isFilteringTypes = urlTypes.length > 0;
+
+    Object.keys(menuData).forEach(gKey => {
+        const currentGender = String(gKey);
+        const productTypes = menuData[gKey];
+
+        const genderHasMatch = productTypes.some(t => {
+            if (urlTypes.includes(String(t.id))) return true;
+            return t.categories.some(p => 
+                urlCats.includes(String(p.id)) || p.children?.some(c => urlCats.includes(String(c.id)))
+            );
+        });
+
+        if (hasGenderInUrl) {
+            if (!urlGenders.includes(currentGender)) return;
+        } else {
+            if (!(isFilteringTypes || isFilteringCats) || !genderHasMatch) return;
+        }
+
+        if (!finalGenders.includes(currentGender)) finalGenders.push(currentGender);
+
+        productTypes.forEach(t => {
+            const typeId = String(t.id);
+            const typeKey = `${currentGender}_${typeId}`;
+            
+            const hasChildMatch = t.categories.some(p => 
+                urlCats.includes(String(p.id)) || p.children?.some(c => urlCats.includes(String(c.id)))
+            );
+
+            const shouldSelectType = urlTypes.includes(typeId) || 
+                                     (hasGenderInUrl && !isFilteringTypes && !isFilteringCats) || 
+                                     hasChildMatch;
+
+            if (shouldSelectType) {
+                finalTypes.push(typeKey);
+
+                t.categories.forEach(p => {
+                    const pId = String(p.id);
+                    const pKey = `${currentGender}_${pId}`;
+                    const hasSubChildMatch = p.children?.some(c => urlCats.includes(String(c.id)));
+
+                    const shouldSelectParent = urlCats.includes(pId) || hasSubChildMatch || (shouldSelectType && !isFilteringCats);
+
+                    if (shouldSelectParent) {
+                        finalCats.push(pKey);
+
+                        const isBroadSelecting = urlCats.includes(pId) || (shouldSelectType && !isFilteringCats);
+                        
+                        p.children?.forEach(c => {
+                            const cId = String(c.id);
+                            if (isBroadSelecting || urlCats.includes(cId)) {
+                                finalCats.push(cId);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    return {
+        gender: [...new Set(finalGenders)],
+        product_types: finalTypes,
+        categories: finalCats,
+        brands: f.brands || [],
+        attribute_values: f.attribute_values || [],
+        prices: f.prices || [],
+        sort: f.sort || 'latest',
+        search: f.search || '',
+        is_flash_sale: f.is_flash_sale === 'true' || f.is_flash_sale === true,
+    };
+};
+const params = reactive(getInitialFilters());
 
 watch(params, () => {
-    router.get(route('shop.index'), pickBy(params), {
+    const cleanParams = { ...params };
+
+    cleanParams.product_types = params.product_types.map(val => val.includes('_') ? val.split('_')[1] : val);
+    cleanParams.categories = params.categories.map(val => val.includes('_') ? val.split('_')[1] : val);
+
+    router.get(route('shop.index'), pickBy(cleanParams), {
         preserveState: true,
         preserveScroll: true,
         replace: true
     });
 }, { deep: true });
-
-const expandedGenders = ref([...params.gender].map(String));
-const expandedTypes = ref([...params.product_types].map(String));
-const expandedParents = ref([...params.categories].map(String));
+const expandedGenders = ref([...params.gender]);
+const expandedTypes = ref([...params.product_types]);
+const expandedParents = ref([...params.categories]);
 
 const isExpanded = (list, item) => {
     return Array.isArray(list) && list.includes(String(item));
@@ -64,93 +141,124 @@ const toggleUI = (list, item) => {
 
 //Xử lý khi tích vào Gender
 const handleGenderChange = (gender, productTypes, isChecked) => {
-    //Cập nhật mảng gender
     if (isChecked) {
         if (!params.gender.includes(gender)) params.gender.push(gender);
         if (!expandedGenders.value.includes(gender)) expandedGenders.value.push(gender);
     } else {
         params.gender = params.gender.filter(g => g !== gender);
+        expandedGenders.value = expandedGenders.value.filter(g => g !== gender);
     }
 
-    //Lấy toàn bộ ID con thuộc Gender này
-    let typeIds = [];
-    let catIds = [];
     productTypes.forEach(type => {
-        typeIds.push(String(type.id));
+        const typeKey = `${gender}_${type.id}`;
+        
+        if (isChecked) {
+            if (!params.product_types.includes(typeKey)) params.product_types.push(typeKey);
+        } else {
+            params.product_types = params.product_types.filter(id => id !== typeKey);
+        }
+
         type.categories.forEach(parent => {
-            catIds.push(String(parent.id));
-            parent.children?.forEach(child => catIds.push(String(child.id)));
+            const parentKey = `${gender}_${parent.id}`;
+
+            if (isChecked) {
+                if (!params.categories.includes(parentKey)) params.categories.push(parentKey);
+            } else {
+                params.categories = params.categories.filter(id => id !== parentKey);
+            }
+
+            parent.children?.forEach(child => {
+                const childId = String(child.id); 
+                if (isChecked) {
+                    if (!params.categories.includes(childId)) params.categories.push(childId);
+                } else {
+                    params.categories = params.categories.filter(id => id !== childId);
+                }
+            });
         });
     });
-
-    if (isChecked) {
-        //Thêm toàn bộ con vào params
-        params.product_types = [...new Set([...params.product_types, ...typeIds])];
-        params.categories = [...new Set([...params.categories, ...catIds])];
-    } else {
-        //Dọn sạch con thuộc gender này khỏi params
-        params.product_types = params.product_types.filter(id => !typeIds.includes(id));
-        params.categories = params.categories.filter(id => !catIds.includes(id));
-    }
 };
 
 //Xử lý khi tích vào Product Type
 const handleProductTypeChange = (gender, type, isChecked) => {
-    const typeId = String(type.id);
-
-    //Tự động tích Gender cha nếu chưa có
+    const typeKey = `${gender}_${type.id}`;
+    
     if (isChecked && !params.gender.includes(gender)) {
         params.gender.push(gender);
     }
 
     if (isChecked) {
-        if (!params.product_types.includes(typeId)) params.product_types.push(typeId);
+        if (!params.gender.includes(gender)) params.gender.push(gender);
+        if (!params.product_types.includes(typeKey)) params.product_types.push(typeKey);
+        if (!expandedTypes.value.includes(typeKey)) {
+            expandedTypes.value.push(typeKey);
+        }
     } else {
-        params.product_types = params.product_types.filter(id => id !== typeId);
+        params.product_types = params.product_types.filter(id => id !== typeKey);
     }
-
-    //Lấy ID của tất cả Category thuộc Type này
-    let catIds = [];
     type.categories.forEach(parent => {
-        catIds.push(String(parent.id));
-        parent.children?.forEach(child => catIds.push(String(child.id)));
+        const parentKey = `${gender}_${parent.id}`;
+        if (isChecked) {
+            if (!params.categories.includes(parentKey)) params.categories.push(parentKey);
+        } else {
+            params.categories = params.categories.filter(id => id !== parentKey);
+        }
+        
+        parent.children?.forEach(child => {
+            const childId = String(child.id);
+            if (isChecked) {
+                if (!params.categories.includes(childId)) params.categories.push(childId);
+            } else {
+                params.categories = params.categories.filter(id => id !== childId);
+            }
+        });
     });
-
-    if (isChecked) {
-        params.categories = [...new Set([...params.categories, ...catIds])];
-    } else {
-        params.categories = params.categories.filter(id => !catIds.includes(id));
-    }
 };
 
 //Xử lý khi tích vào Category Cha
-const handleParentCategoryChange = (parent, isChecked) => {
-    const parentId = String(parent.id);
-    const childIds = parent.children?.map(c => String(c.id)) || [];
-
+const handleParentCategoryChange = (gender, parent, isChecked) => {
+    const parentKey = `${gender}_${parent.id}`;
+    
     if (isChecked) {
-        if (!params.categories.includes(parentId)) params.categories.push(parentId);
-        params.categories = [...new Set([...params.categories, ...childIds])];
+        if (!params.categories.includes(parentKey)) params.categories.push(parentKey);
+        if (!expandedParents.value.includes(parentKey)) {
+            expandedParents.value.push(parentKey);
+        }
     } else {
-        params.categories = params.categories.filter(id => id !== parentId && !childIds.includes(id));
+        params.categories = params.categories.filter(id => id !== parentKey);
     }
+
+    parent.children?.forEach(child => {
+        const childId = String(child.id);
+        if (isChecked) {
+            if (!params.categories.includes(childId)) params.categories.push(childId);
+        } else {
+            params.categories = params.categories.filter(id => id !== childId);
+        }
+    });
 };
 
 const resetFilters = () => {
-    params.gender = [];
-    params.product_types = [];
-    params.categories = [];
-    params.brands = [];
-    params.sizes = [];
-    params.colors = [];
-    params.prices = [];
+    params.gender.length = 0;
+    params.product_types.length = 0;
+    params.categories.length = 0;
+    params.brands.length = 0;
+    params.attribute_values.length = 0;
+    params.prices.length = 0;
     params.sort = 'latest';
+    params.search = '';
+    params.is_flash_sale = false;
+
+    expandedGenders.value = [];
+    expandedTypes.value = [];
+    expandedParents.value = [];
 };
 
 const isFiltering = computed(() => {
    return params.gender.length > 0 || params.product_types.length > 0 || 
           params.categories.length > 0 || params.brands.length > 0 || 
-          params.prices.length > 0;
+          params.attribute_values.length > 0 || params.prices.length > 0 || 
+          params.is_flash_sale === true;
 });
 </script>
 
@@ -162,10 +270,26 @@ const isFiltering = computed(() => {
                 <div class="flex flex-col md:flex-row gap-4 lg:gap-12 items-start">
                     
                     <aside class="w-1/4 md:w-64 flex-shrink-0 space-y-10">
+                        <div>
+                            <div class="pb-2 mb-6 border-b border-gray-300">
+                                <h3 class="text-[14px] font-black uppercase tracking-[0.2em]">Ưu đãi</h3>
+                            </div>
+                            <div class="space-y-3">
+                                <label class="flex items-center cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="params.is_flash_sale"
+                                        class="form-checkbox custom-checkbox"
+                                    />
+                                    <span class="ml-3 text-[14px] font-bold uppercase group-hover:text-primary transition-colors flex items-center gap-2">
+                                        Đang Flash Sale
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
                         <div class="pb-2 mb-6 border-b border-gray-300">
                             <h3 class="text-[14px] font-black uppercase tracking-[0.2em]">Danh mục</h3>
                         </div>
-
                         <div class="space-y-6">
                             <div v-for="(productTypes, gender) in $page.props.menuCategories.data" :key="gender" class="space-y-3"> 
                                 <div class="flex items-center justify-between group">
@@ -187,35 +311,35 @@ const isFiltering = computed(() => {
                                         <div class="flex items-center justify-between group">
                                             <label class="flex items-center cursor-pointer flex-1">
                                                 <input type="checkbox" 
-                                                    :checked="params.gender.includes(gender) && params.product_types.includes(String(type.id))"
+                                                    :checked="params.product_types.includes(gender + '_' + type.id)"
                                                     @change="handleProductTypeChange(gender, type, $event.target.checked)"
                                                     class="form-checkbox custom-checkbox"/>
                                                 <span class="ml-3 text-[14px] font-bold group-hover:text-primary">
                                                     {{type.type_name}}
                                                 </span>
                                             </label>
-                                            <button type="button" @click.stop.prevent="toggleUI(expandedTypes, type.id)" class="p-1 text-gray-400">
-                                                <i :class="['fas text-[8px] transition-transform', isExpanded(expandedTypes, type.id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                                            <button type="button" @click.stop.prevent="toggleUI(expandedTypes, gender + '_' + type.id)" class="p-1 text-gray-400">
+                                                <i :class="['fas text-[8px] transition-transform', isExpanded(expandedTypes, gender + '_' + type.id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
                                             </button>
                                         </div>
 
-                                        <div v-show="isExpanded(expandedTypes, type.id)" class="ml-4 pl-4 border-l border-gray-300 space-y-3">
+                                        <div v-show="isExpanded(expandedTypes, gender + '_' + type.id)" class="ml-4 pl-4 border-l border-gray-300 space-y-3">
                                             <div v-for="parent in type.categories" :key="parent.id">
                                                 <div class="flex items-center justify-between">
                                                     <label class="flex items-center cursor-pointer flex-1">
                                                         <input type="checkbox" 
-                                                            :checked="params.gender.includes(gender) && params.categories.includes(String(parent.id))"
-                                                            @change="handleParentCategoryChange(parent, $event.target.checked)"
+                                                            :checked="params.categories.includes(gender + '_' + parent.id)"
+                                                            @change="handleParentCategoryChange(gender, parent, $event.target.checked)"
                                                             class="form-checkbox custom-checkbox scale-90"/>
                                                         <span class="ml-2 text-[14px] font-bold">{{parent.category_name}}</span>
                                                     </label>
                                                     <button v-if="parent.children?.length" type="button" 
-                                                            @click.stop.prevent="toggleUI(expandedParents, parent.id)" class="p-1 text-gray-300">
-                                                        <i :class="['fas text-[8px] transition-transform', isExpanded(expandedParents, parent.id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                                                            @click.stop.prevent="toggleUI(expandedParents, gender + '_' + parent.id)" class="p-1 text-gray-300">
+                                                        <i :class="['fas text-[8px] transition-transform', isExpanded(expandedParents, gender + '_' + parent.id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
                                                     </button>
                                                 </div>
 
-                                                <div v-show="isExpanded(expandedParents, parent.id)" class="ml-4 pl-4 border-l border-gray-300 mt-2 space-y-3">
+                                                <div v-show="isExpanded(expandedParents, gender + '_' + parent.id)" class="ml-4 pl-4 border-l border-gray-300 mt-2 space-y-3">
                                                     <label v-for="child in parent.children" :key="child.id" class="flex items-center cursor-pointer group">
                                                         <input type="checkbox" :value="String(child.id)" v-model="params.categories"
                                                             class="form-checkbox custom-checkbox scale-75">
@@ -238,14 +362,11 @@ const isFiltering = computed(() => {
                                 v-model="params.brands"
                             />
                             <ShopFilterDropdown
-                                label="Size"
-                                :options="sizes"
-                                v-model="params.sizes"
-                            />
-                            <ShopFilterDropdown
-                                label="Màu sắc"
-                                :options="colors"
-                                v-model="params.colors"
+                                v-for="attr in attributes"
+                                :key="attr.id"
+                                :label="attr.attribute_name"
+                                :options="attr.values"
+                                v-model="params.attribute_values"
                             />
                             <ShopFilterDropdown
                                 label="Giá"

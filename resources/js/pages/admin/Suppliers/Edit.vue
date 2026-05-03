@@ -30,27 +30,27 @@ const submit = () => {
 <template>
     <Head :title="'Sửa: ' + supplier.supplier_name" />
     <AdminLayout>
-        <PageBreadcrumb pageTitle="Chỉnh sửa nhà cung cấp" parentName="Nhà cung cấp" :parentRoute="route('admin.suppliers.index')" />
+        <PageBreadcrumb pageTitle="Sửa nhà cung cấp" parentName="Nhà cung cấp" :parentRoute="route('admin.suppliers.index')" />
 
         <form @submit.prevent="submit" class="grid grid-cols-1 gap-6 lg:grid-cols-1 gap-6">
             <div class="lg:col-span-8 space-y-6">
                 <ComponentCard title="Thông tin cơ bản">
                     <div class="space-y-4">
                         <div>
-                            <InputLabel>Tên nhà cung cấp (*)</InputLabel>
+                            <InputLabel>Tên nhà cung cấp <span class="text-red-500">*</span></InputLabel>
                             <Input v-model="form.supplier_name" placeholder="Nhập tên nhóm" :error="form.errors.supplier_name" />
                         </div>
                         <div>
-                            <InputLabel>Số điện thoại (*)</InputLabel>
+                            <InputLabel>Số điện thoại <span class="text-red-500">*</span></InputLabel>
                             <Input v-model="form.phone" placeholder="Nhập mã nhóm" :error="form.errors.phone" />
                         </div>
                         <div>
-                            <InputLabel>Địa chỉ (*)</InputLabel>
+                            <InputLabel>Địa chỉ <span class="text-red-500">*</span></InputLabel>
                             <Input v-model="form.supplier_address" placeholder="Nhập mô tả" :error="form.errors.supplier_address" />
                         </div>
                     </div>
                 </ComponentCard>
-                <SubmitButton :processing="form.processing" label="LƯU NHÀ CUNG CẤP" loadingLabel="ĐANG LƯU..." />
+                <SubmitButton :processing="form.processing" label="CẬP NHẬT NHÀ CUNG CẤP" loadingLabel="ĐANG LƯU..." />
             </div>
         </form>
     </AdminLayout>

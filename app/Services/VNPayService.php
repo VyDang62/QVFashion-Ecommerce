@@ -18,7 +18,7 @@ class VnpayService
         $this->tmnCode = config('services.vnpay.VNP_TMN_CODE');
         $this->hashSecret = config('services.vnpay.VNP_HASH_SECRET');
         $this->baseUrl = config('services.vnpay.VNP_URL');
-        $this->apiUrl = config('services.vnpay.VNP_API_URL'); // URL API cho Refund/Query
+        $this->apiUrl = config('services.vnpay.VNP_API_URL');
     }
 
     public function createPaymentUrl(Order $order)
@@ -89,7 +89,7 @@ class VnpayService
         $payment = Payment::where('order_id', $order->id)->first();
         if (!$payment) return ['status' => false, 'message' => 'Không tìm thấy thông tin giao dịch gốc!'];
 
-        $vnp_RequestId = date("YmdHis"); // Mã yêu cầu duy nhất
+        $vnp_RequestId = date("YmdHis"); //Mã yêu cầu duy nhất
         $vnp_Amount = ($amount ?? $order->final_amount) * 100;
         
         $data = [
@@ -102,7 +102,7 @@ class VnpayService
             "vnp_Amount"         => $vnp_Amount,
             "vnp_OrderInfo"      => "Hoan tien don hang: " . $order->order_code,
             "vnp_TransactionNo"  => $payment->transaction_no,
-            "vnp_TransactionDate"=> $payment->pay_date, // Thời gian thanh toán gốc
+            "vnp_TransactionDate"=> $payment->pay_date,
             "vnp_CreateBy"       => auth()->user()->full_name ?? 'System',
             "vnp_CreateDate"     => date('YmdHis'),
             "vnp_IpAddr"         => request()->ip(),

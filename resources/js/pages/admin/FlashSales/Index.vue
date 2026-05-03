@@ -20,7 +20,7 @@ const status = ref(props.filters.status || 'active');
 const searchTerm = ref(props.filters.search || '');
 const perPage = ref(props.filters.perPage || 10);
 
-const tableHeaders = ['Tên Flash Sale', 'Thời gian diễn ra', 'Số lượng SP', 'Trạng thái thực tế', 'Hoạt động', 'Thao tác'];
+const tableHeaders = ['Tên Flash Sale', 'Thời gian diễn ra', 'Số lượng SP', 'Trạng thái thực tế', 'Trạng thái', 'Thao tác'];
 
 watch([searchTerm, perPage, status], debounce(([newSearch, newPerPage, newStatus]) => {
     router.get(route('admin.flashsales.index'), { 

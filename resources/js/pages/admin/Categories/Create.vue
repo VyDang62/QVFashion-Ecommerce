@@ -27,16 +27,16 @@ const submit = () => {
 }
 </script>
 <template>
-    <AdminLayout title="Thêm danh mục sản phẩm">
-        <Head title="Thêm danh mục sản phẩm" />
-        <PageBreadcrumb pageTitle="Thêm danh mục sản phẩm" parentName="Sản phẩm" :parentRoute="route('admin.categories.index')" />
+    <AdminLayout title="Thêm danh mục">
+        <Head title="Thêm danh mục" />
+        <PageBreadcrumb pageTitle="Thêm danh mục" parentName="Danh mục" :parentRoute="route('admin.categories.index')" />
         <form @submit.prevent="submit">
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 gap-6">
                 <div class="lg:col-span-8  space-y-6">
                     <ComponentCard title="Thông tin cơ bản">
                         <div class="space-y-4">
                             <div>
-                                <InputLabel>Giới tính</InputLabel>
+                                <InputLabel>Giới tính <span class="text-red-500">*</span></InputLabel>
                                 <SingleSelect 
                                     v-model="form.gender" 
                                     :options="genders" 
@@ -47,7 +47,7 @@ const submit = () => {
                                 />
                             </div>
                             <div>
-                                <InputLabel>Loại sản phẩm</InputLabel>
+                                <InputLabel>Loại sản phẩm <span class="text-red-500">*</span></InputLabel>
                                 <SingleSelect v-model="form.product_type_id" :options="productTypes" option-label="type_name" option-value="id" placeholder="Chọn loại sản phẩm..." :error="form.errors.product_type_id"/>
                             </div>
                             <div>

@@ -6,13 +6,19 @@ const props = defineProps({
     options: Array, 
     modelValue: Array, 
 });
-
+//Định nghĩa sự kiện để gửi dữ liệu ngược lại cho Component cha
 const emit = defineEmits(['update:modelValue']);
 
 const searchQuery = ref('');
-
+//Lấy danh sách đối tượng đã được chọn của Dropdown này
 const selectedItems = computed(() => {
     return props.options.filter(opt => props.modelValue.includes(opt.id));
+});
+//Vì params.attribute_values có thể chứa id của mọi thuộc tính, nên ta cần lọc lại những id thuộc về options này
+const localSelectedCount = computed(() => {
+    return props.modelValue.filter(id => 
+        props.options.some(opt => String(opt.id) === String(id))
+    ).length;
 });
 
 const filteredOptions = computed(() => {
@@ -38,7 +44,9 @@ const removeItem = (id) => {
 };
 
 const clearAll = () => {
-    emit('update:modelValue', []);
+    const optionIds = props.options.map(opt => String(opt.id));
+    const newValue = props.modelValue.filter(id => !optionIds.includes(String(id)));
+    emit('update:modelValue', newValue);
 };
 </script>
 
@@ -47,7 +55,7 @@ const clearAll = () => {
         <div class="flex items-center cursor-pointer group-hover:text-black transition-colors">
             <span class="text-[14px] font-semibold">
                 {{ label }}
-                <span v-if="modelValue.length > 0" class="text-black font-bold">({{ modelValue.length }})</span>
+                <span v-if="localSelectedCount > 0" class="text-black font-bold">({{ localSelectedCount }})</span>
             </span>
             <i class="fas fa-chevron-down ml-2 text-[8px] transition-transform group-hover:rotate-180"></i>
         </div>
@@ -124,7 +132,6 @@ const clearAll = () => {
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #ddd; }
 
-/* Đảm bảo underline đẹp hơn */
 .underline {
     text-underline-offset: 8px;
     text-decoration-thickness: 2px;

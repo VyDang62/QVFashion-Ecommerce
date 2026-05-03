@@ -210,7 +210,7 @@ class VoucherController extends Controller implements HasMiddleware
                 $oldData = $voucher->only(['code', 'discount_value', 'is_active', 'usage_limit']);
                 $voucher->update($validate);
 
-                $voucher->restrictions()->delete();
+                $voucher->restrictions()->forceDelete();
                 $newRestrictions = collect();
 
                 if($request->filled('brand_ids')){
@@ -257,25 +257,37 @@ class VoucherController extends Controller implements HasMiddleware
     public function destroy(Voucher $voucher)
     {
         $voucherCode = $voucher->code;
-        $voucher->delete();
+
+        DB::transaction(function () use ($voucher) {
+            $voucher->restrictions()->delete(); 
+            $voucher->delete();
+        });
+
         Logger::log(
             'Soft Delete Voucher',
             $voucher,
-            "Đã tạm xóa mã giảm giá: {$voucherCode}"
+            "Đã tạm xóa mã giảm giá: {$voucherCode} và các điều kiện đi kèm."
         );
+
         return back()->with('success', 'Mã giảm giá đã được tạm xóa!');
     }
     
     public function restore($id)
     {
         $voucher = Voucher::onlyTrashed()->findOrFail($id);
-        $voucher->restore();
+
+        DB::transaction(function () use ($voucher) {
+            $voucher->restore();
+            $voucher->restrictions()->onlyTrashed()->restore();
+        });
+
         Logger::log(
             'Restore Voucher',
             $voucher,
             "Đã khôi phục mã giảm giá: {$voucher->code}"
         );
-        return back()->with('success','Khôi phục mã giảm giá thành công!');
+
+        return back()->with('success', 'Khôi phục mã giảm giá thành công!');
     }
 
     public function forceDelete($id)
@@ -287,9 +299,11 @@ class VoucherController extends Controller implements HasMiddleware
             if ($hasOrders) {
                 return back()->with('error', 'Không thể xóa vĩnh viễn mã giảm giá này vì đã có đơn hàng sử dụng trong lịch sử!');
             }
-            $voucherCode = $voucher->code;
-            DB::transaction(function () use ($voucher, $id, $voucherCode) {
 
+            $voucherCode = $voucher->code;
+
+            DB::transaction(function () use ($voucher, $id, $voucherCode) {
+                $voucher->restrictions()->withTrashed()->forceDelete();
                 $voucher->forceDelete();
 
                 DB::table('activity_logs')->insert([

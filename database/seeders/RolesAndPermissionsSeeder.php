@@ -80,7 +80,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         //Nhân viên bán hàng (Sale)
-        $salesRole = Role::firstOrCreate(['name' => 'sales staff']);
+        $salesRole = Role::firstOrCreate(['name' => 'sales-staff']);
         $salesRole->syncPermissions([
             'dashboard.view_overall_dashboard', 'dashboard.view_product_statistics', 
             'products.view',
@@ -100,21 +100,25 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 'email' => 'admin@gmail.com',
                 'full_name' => 'Super Admin',
+                'phone_number' => '0123456789',
                 'role' => $superAdminRole
             ],
             [
                 'email' => 'warehouse@gmail.com',
                 'full_name' => 'Quản lý kho',
+                'phone_number' => '0123456787',
                 'role' => $warehouseRole
             ],
             [
                 'email' => 'salesstaff@gmail.com',
                 'full_name' => 'Nhân viên bán hàng',
+                'phone_number' => '0123456782',
                 'role' => $salesRole
             ],
             [
                 'email' => 'customer@gmail.com',
                 'full_name' => 'Khách hàng mẫu',
+                'phone_number' => '0123456785',
                 'role' => $customerRole
             ],
         ];
@@ -125,6 +129,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 [
                     'full_name' => $data['full_name'],
                     'password' => Hash::make('password'),
+                    'phone_number' => $data['phone_number'],
                     'email_verified_at' => now(),
                 ]
             );

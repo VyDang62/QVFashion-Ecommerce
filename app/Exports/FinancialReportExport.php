@@ -49,17 +49,17 @@ class FinancialReportExport implements FromCollection, ShouldAutoSize, WithStyle
         //Header bảng chi tiết
         $data->push(['CHI TIẾT ĐƠN HÀNG']);
         $data->push([
-            'Mã Đơn Hàng',
+            'Mã Đơn',
             'Ngày Đặt',
             'Hàng Hóa (Doanh thu)',
-            'Phí Ship',
+            'Phí Ship Thu Hộ',
             'Giá Vốn',
             'Giảm Giá',
-            'Lợi Nhuận Gộp',
+            'Lợi Nhuận',
             'Trạng Thái'
         ]);
 
-        //Dữ liệu đơn hàng (Dùng data_get cho an toàn tuyệt đối)
+        //Dữ liệu đơn hàng
         foreach ($orders as $order) {
             $ship = (float)data_get($order, 'shipping_fee', 0);
             $finalAmount = (float)data_get($order, 'final_amount', 0);

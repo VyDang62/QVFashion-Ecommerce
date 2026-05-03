@@ -58,7 +58,7 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                <div class="lg:col-span-1">
+                <div class="lg:col-span-1 space-y-6">
                     <ComponentCard title="Thông tin cơ bản">
                         <div class="space-y-4">
                             <div>
@@ -70,11 +70,9 @@ const submit = () => {
                                     :error="form.errors.name"
                                 />
                             </div>
-                            <div class="pt-4 border-t border-gray-100">
-                                <SubmitButton :processing="form.processing" label="LƯU VAI TRÒ" class="w-full" />
-                            </div>
                         </div>
                     </ComponentCard>
+                    <SubmitButton :processing="form.processing" label="THÊM VAI TRÒ" class="w-full" />
                 </div>
 
                 <div class="lg:col-span-2">

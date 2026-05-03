@@ -138,12 +138,12 @@ const submit = () => {
                                 </div>
                             </div>
                             <div>
-                                <InputLabel>Ngày bắt đầu</InputLabel>
+                                <InputLabel>Ngày bắt đầu <span class="text-red-500">*</span></InputLabel>
                                 <input type="datetime-local" v-model="form.start_date" class="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block" />
                                 <p v-if="form.errors.start_date" class="text-red-500 text-xs mt-1">{{ form.errors.start_date }}</p>
                             </div>
                             <div>
-                                <InputLabel>Ngày kết thúc</InputLabel>
+                                <InputLabel>Ngày kết thúc <span class="text-red-500">*</span></InputLabel>
                                 <input type="datetime-local" v-model="form.end_date" class="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block" />
                                 <p v-if="form.errors.end_date" class="text-red-500 text-xs mt-1">{{ form.errors.end_date }}</p>
                             </div>

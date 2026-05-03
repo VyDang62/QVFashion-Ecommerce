@@ -69,7 +69,7 @@ const getStatusLabel = (status) => {
 </script>
 
 <template>
-    <Head title="Quản lý nhập hàng" />
+    <Head title="Phiếu nhập hàng" />
     <AdminLayout>
         <PageBreadcrumb pageTitle="Phiếu nhập hàng" />
         <div class="space-y-6">

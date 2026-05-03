@@ -73,10 +73,6 @@
                     <label class="mb-1.5 block text-sm font-medium text-gray-700">Số điện thoại</label>
                     <input v-model="form.phone_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300" />
                   </div>
-                  <div class="col-span-2">
-                    <label class="mb-1.5 block text-sm font-medium text-gray-700">Vai trò</label>
-                    <input v-model="form.role_name" type="text" disabled class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 shadow-theme-xs cursor-not-allowed" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -107,7 +103,6 @@ const form = useForm({
   full_name: user?.full_name || '',
   email: user?.email || '',
   phone_number: user?.phone_number || '',
-  role_name: user?.role_name || '',
 })
 const saveProfile = () => {
   form.patch(route('admin.userprofile.updateinfo'), {

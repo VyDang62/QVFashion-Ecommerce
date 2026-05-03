@@ -95,28 +95,26 @@ class ProductController extends Controller  implements HasMiddleware
     public function store(Request $request)
     {
 
-        $validate = $request->validate([
-        'product_name' => 'required|string|max:255',
-        'category_id'  => 'required|exists:categories,id',
-        'brand_id'     => 'required|exists:brands,id',
-        'thumbnail'    => 'required|image|max:2048',
-        'is_active' => 'boolean',
-        'is_featured' => 'boolean',
-        'meta_title' => 'nullable|string|max:255',
-        'meta_description' => 'nullable|string',
-        'meta_keywords' => 'nullable|string|max:255',
-        'variants'     => 'required|array|min:1',
-        'variants.*.sku'   => 'required|unique:product_variants,sku',
-        'variants.*.price' => 'required|numeric|min:0',
-        'variants.*.stock' => 'required|integer|min:0',
-        'variants.*.image' => 'nullable|image|max:2048',
-        'variants.*.low_stock_threshold' => 'required|integer|min:0',
-        'gender'          => ['required', new Enum(Gender::class)],
+        $request->validate([
+            'product_name' => 'required|string|max:255',
+            'category_id'  => 'required|exists:categories,id',
+            'brand_id'     => 'required|exists:brands,id',
+            'thumbnail'    => 'required|image|max:2048',
+            'is_active' => 'boolean',
+            'is_featured' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
+            'variants'     => 'required|array|min:1',
+            'variants.*.sku'   => 'required|unique:product_variants,sku',
+            'variants.*.price' => 'required|numeric|min:0',
+            'variants.*.stock' => 'required|integer|min:0',
+            'variants.*.image' => 'nullable|image|max:2048',
+            'variants.*.low_stock_threshold' => 'required|integer|min:0',
+            'gender'          => ['required', new Enum(Gender::class)],
         ]);
         try{
             DB::transaction(function () use($request){
-                $productSlug = Str::slug($request->product_name) . '-' . time();
-                $basePath = "uploads/products/{$productSlug}";
                 
                 $product = Product::create([
                     'product_name' => $request->product_name,
@@ -130,6 +128,8 @@ class ProductController extends Controller  implements HasMiddleware
                     'meta_keywords' => $request->meta_keywords,
                 ]);
 
+                $basePath = "uploads/products/{$product->slug}";
+                
                 if ($request->hasFile('thumbnail')) {
                     //Lưu vào: storage/app/public/uploads/products/{slug}/thumbnail.jpg
                     $thumbnailPath = $request->file('thumbnail')->store($basePath, 'public');
@@ -408,15 +408,45 @@ class ProductController extends Controller  implements HasMiddleware
         try {
             $productName = $product->product_name;
             $productSlug = $product->slug;
+
             DB::transaction(function () use ($product) {
-                $directoryPath = "uploads/products/{$product->slug}";
-                if (Storage::disk('public')->exists($directoryPath)) {
-                    Storage::disk('public')->deleteDirectory($directoryPath);
+                //Tạo một danh sách các thư mục cần xóa
+                $directoriesToDelete = collect();
+
+                foreach ($product->images as $img) {
+                    //Lấy đường dẫn thư mục gốc của sản phẩm từ image_path
+                    //Ví dụ: image_path là "uploads/products/ao-thun-cu/variants/sku1/hinh.jpg"
+                    //Ta cần lấy "uploads/products/ao-thun-cu"
+                    $pathParts = explode('/', $img->image_path);
+                    if (count($pathParts) >= 3) {
+                        $rootProductFolder = $pathParts[0] . '/' . $pathParts[1] . '/' . $pathParts[2];
+                        $directoriesToDelete->push($rootProductFolder);
+                    }
+
+                    //Xóa file ảnh lẻ
+                    if (Storage::disk('public')->exists($img->image_path)) {
+                        Storage::disk('public')->delete($img->image_path);
+                    }
                 }
-                $product->images()->delete(); 
+
+                //Xóa các thư mục đã thu thập được
+                $directoriesToDelete->unique()->each(function ($folder) {
+                    if (Storage::disk('public')->exists($folder)) {
+                        Storage::disk('public')->deleteDirectory($folder);
+                    }
+                });
+
+                //Dự phòng: Xóa thư mục theo slug hiện tại (nếu có)
+                $currentBasePath = "uploads/products/{$product->slug}";
+                if (Storage::disk('public')->exists($currentBasePath)) {
+                    Storage::disk('public')->deleteDirectory($currentBasePath);
+                }
+
+                $product->images()->delete();
                 $product->variants()->forceDelete();
                 $product->forceDelete();
             });
+
             DB::table('activity_logs')->insert([
                 'user_id' => auth()->id(),
                 'action' => 'Force Delete Product',
@@ -427,7 +457,8 @@ class ProductController extends Controller  implements HasMiddleware
                 'ip_address' => request()->ip(),
                 'created_at' => now(),
             ]);
-            return back()->with('success', "Đã xóa vĩnh viễn sản phẩm và dữ liệu liên quan!");
+
+            return back()->with('success', "Đã xóa vĩnh viễn sản phẩm và dọn sạch dữ liệu ảnh!");
         } catch (\Exception $e) {
             return back()->with('error', "Lỗi hệ thống khi xóa vĩnh viễn: " . $e->getMessage());
         }

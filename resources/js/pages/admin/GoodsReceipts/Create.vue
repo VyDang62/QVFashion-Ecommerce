@@ -63,9 +63,9 @@ const submit = () => {
 }
 </script>
 <template>
-    <AdminLayout title="Lập phiếu nhập hàng">
-        <Head title="Nhập hàng" />
-        <PageBreadcrumb pageTitle="Tạo phiếu nhập" parentName="Phiếu nhập" :parentRoute="route('admin.goodsreceipts.index')" />
+    <AdminLayout title="Thêm phiếu nhập hàng">
+        <Head title="Thêm phiếu nhập hàng" />
+        <PageBreadcrumb pageTitle="Thêm phiếu nhập hàng" parentName="Phiếu nhập hàng" :parentRoute="route('admin.goodsreceipts.index')" />
 
         <form @submit.prevent="submit">
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 gap-6">
@@ -96,9 +96,9 @@ const submit = () => {
                         <table class="w-full text-sm text-left">
                             <thead>
                                 <tr class="border-b">
-                                    <th class="pb-3">Sản phẩm/ Biến thể</th>
-                                    <th class="pb-3 w-24">Số lượng</th>
-                                    <th class="pb-3 w-40">Giá nhập</th>
+                                    <th class="pb-3">Sản phẩm/ Biến thể <span class="text-red-500">*</span></th>
+                                    <th class="pb-3 w-24">Số lượng <span class="text-red-500">*</span></th>
+                                    <th class="pb-3 w-40">Giá nhập <span class="text-red-500">*</span></th>
                                     <th class="pb-3 w-40">Thành tiền</th>
                                     <th class="pb-3"></th>
                                 </tr>
@@ -143,7 +143,7 @@ const submit = () => {
                             + THÊM SẢN PHẨM
                         </button>
                     </ComponentCard>
-                    <SubmitButton :processing="form.processing" label="LƯU PHIẾU NHẬP" loadingLabel="ĐANG LƯU..." />
+                    <SubmitButton :processing="form.processing" label="THÊM PHIẾU NHẬP HÀNG" loadingLabel="ĐANG LƯU..." />
                 </div>
             </div>
         </form>

@@ -50,10 +50,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout title="Chỉnh sửa thuộc tính">
-        <Head title="Chỉnh sửa thuộc tính" />
+    <AdminLayout title="Sửa thuộc tính">
+        <Head title="Sửa thuộc tính" />
         <PageBreadcrumb 
-            pageTitle="Chỉnh sửa thuộc tính" 
+            pageTitle="Sửa thuộc tính" 
             parentName="Thuộc tính" 
             :parentRoute="route('admin.attributes.index')" 
         />
@@ -64,7 +64,7 @@ const submit = () => {
                     <ComponentCard title="Thông tin thuộc tính">
                         <div class="space-y-4">
                             <div>
-                                <InputLabel>Tên thuộc tính (*)</InputLabel>
+                                <InputLabel>Tên thuộc tính <span class="text-red-500">*</span></InputLabel>
                                 <Input 
                                     v-model="form.attribute_name" 
                                     placeholder="Ví dụ: Màu sắc, Kích thước..." 

@@ -36,49 +36,54 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {   
-        //logo
-        $logoPath = Setting::get('website_logo');
-        //category
-        // $menuCategories = Cache::rememberForever('menu_categories',function (){
-        //    return Category::whereNull('parent_id')
-        //         ->with(['productType','children'])
-        //         ->get()
-        //         ->groupBy('gender')
-        //         ->map(function ($categories) {
-        //             return $categories->groupBy(function ($cat) {
-        //                 return $cat->productType;
-        //             });
-        //         })
-        //         ->toArray();
-        // });
-
-        //Lấy Menu
-        $menuCategories = Category::whereNull('parent_id')
-            ->select('id', 'category_name', 'category_slug', 'gender', 'product_type_id')
-            ->with([
+        //Lấy category
+        $menuCategories = Cache::rememberForever('menu_categories_data', function () {
+            return Category::whereNull('parent_id')
+                ->select('id', 'category_name', 'category_slug', 'gender', 'product_type_id')
+                ->with([
                     'productType:id,type_name,slug', 
                     'children' => function($q) {
                         $q->select('id', 'parent_id', 'category_name', 'category_slug');
                     }
                 ])
-            ->get()
-            ->groupBy('gender')
-            ->map(function ($categoriesByGender) {
-                return $categoriesByGender->groupBy('product_type_id')
-                    ->map(function ($items) {
-                        $firstItem = $items->first();
+                ->get()
+                ->groupBy('gender')
+                ->map(function ($categoriesByGender) {
+                    return $categoriesByGender->groupBy('product_type_id')
+                        ->map(function ($items) {
+                            $firstItem = $items->first();
                         
-                        return [
-                            'id' => $firstItem->productType->id,
-                            'type_name' => $firstItem->productType->type_name,
-                            'type_slug' => $firstItem->productType->slug,
-                            'categories' => $items
-                        ];
-                    })->values();
-            })
-            ->toArray();
+                            if (!$firstItem->productType) return null;
 
-        //Lấy cart
+                            return [
+                                'id' => $firstItem->productType->id,
+                                'type_name' => $firstItem->productType->type_name,
+                                'type_slug' => $firstItem->productType->slug,
+                                'categories' => $items
+                            ];
+                        })
+                        ->filter()
+                        ->values();
+                })
+                ->toArray();
+        }   );
+
+        $siteSettings = Cache::rememberForever('site_settings_data', function () {
+            return [
+                'logo_path'      => Setting::get('website_logo'),
+                'site_name'      => Setting::get('site_name', 'Fashion Ecommerce'),
+                'contact_email'  => Setting::get('contact_email'),
+                'phone_number'   => Setting::get('phone_number'),
+                'address'        => Setting::get('address'),
+                'description'    => Setting::get('description'),
+                'facebook_link'  => Setting::get('facebook_link'),
+                'x_link'   => Setting::get('x_link'),
+                'instagram_link' => Setting::get('instagram_link'),
+                'youtube_link'   => Setting::get('youtube_link'),
+            ];
+        });
+
+        //Lấy giỏ hàng
         $user = $request->user();
         $cartItems = [];
         $rawCartItems = [];
@@ -142,16 +147,16 @@ class HandleInertiaRequests extends Middleware
                 'unread_count' => $request->user() ? $request->user()->unreadNotifications()->count() : 0,
             ],
             'settings' => [
-                'logo' => asset('storage/' . $logoPath),
-                'site_name' => Setting::get('site_name', 'Fashion Ecommerce'),
-                'contact_email' => Setting::get('contact_email'),
-                'phone_number' => Setting::get('phone_number'),
-                'address' => Setting::get('address'),
-                'description' => Setting::get('description'),
-                'facebook_link' => Setting::get('facebook_link'),
-                'twitter_link' => Setting::get('twitter_link'),
-                'instagram_link' => Setting::get('instagram_link'),
-                'youtube_link' => Setting::get('youtube_link'),
+                'logo'           => $siteSettings['logo_path'] ? asset('storage/' . $siteSettings['logo_path']) : '/assets/images/logo-placeholder.png',
+                'site_name'      => $siteSettings['site_name'],
+                'contact_email'  => $siteSettings['contact_email'],
+                'phone_number'   => $siteSettings['phone_number'],
+                'address'        => $siteSettings['address'],
+                'description'    => $siteSettings['description'],
+                'facebook_link'  => $siteSettings['facebook_link'],
+                'x_link'   => $siteSettings['x_link'],
+                'instagram_link' => $siteSettings['instagram_link'],
+                'youtube_link'   => $siteSettings['youtube_link'],
             ],
             'menuCategories' => [
                 'data' => $menuCategories,

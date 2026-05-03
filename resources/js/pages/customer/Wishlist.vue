@@ -41,7 +41,7 @@ const removeWishlist = (productId) => {
                         <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-2xl sm:p-8">
                             <header class="mb-8 flex justify-between items-center border-b pb-5">
                                 <div>
-                                    <h2 class="text-xl font-semibold text-gray-900">Wishlist</h2>
+                                    <h2 class="text-xl font-semibold text-gray-900">Sản phẩm yêu thích</h2>
                                     <p class="mt-1 text-sm text-gray-600">Bạn có {{ wishlistItems.length }} sản phẩm đã lưu</p>
                                 </div>
                             </header>

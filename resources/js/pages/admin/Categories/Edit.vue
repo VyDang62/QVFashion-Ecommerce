@@ -37,14 +37,14 @@ const submit = () => {
 <template>
     <Head :title="'Sửa: ' + category.category_name" />
     <AdminLayout>
-        <PageBreadcrumb pageTitle="Chỉnh sửa danh mục" parentName="Danh mục" :parentRoute="route('admin.categories.index')" />
+        <PageBreadcrumb pageTitle="Sửa danh mục" parentName="Danh mục" :parentRoute="route('admin.categories.index')" />
 
         <form @submit.prevent="submit" class="grid grid-cols-1 gap-6 lg:grid-cols-1 gap-6">
             <div class="lg:col-span-8 space-y-6">
                 <ComponentCard title="Thông tin cơ bản">
                     <div class="space-y-4">
                         <div>
-                            <InputLabel>Giới tính</InputLabel>
+                            <InputLabel>Giới tính <span class="text-red-500">*</span></InputLabel>
                             <SingleSelect 
                                 v-model="form.gender" 
                                 :options="genders" 
@@ -55,7 +55,7 @@ const submit = () => {
                             />
                         </div>
                         <div>
-                            <InputLabel>Loại sản phẩm</InputLabel>
+                            <InputLabel>Loại sản phẩm <span class="text-red-500">*</span></InputLabel>
                             <SingleSelect v-model="form.product_type_id" :options="productTypes" option-label="type_name" option-value="id" placeholder="Chọn loại sản phẩm..." :error="form.errors.product_type_id"/>
                         </div>
                         <div>
@@ -71,7 +71,7 @@ const submit = () => {
                         </div>
                     </div>
                 </ComponentCard>
-                <SubmitButton :processing="form.processing" label="LƯU DANH MỤC" loadingLabel="ĐANG LƯU..." />
+                <SubmitButton :processing="form.processing" label="CẬP NHẬT DANH MỤC" loadingLabel="ĐANG LƯU..." />
             </div>
         </form>
     </AdminLayout>

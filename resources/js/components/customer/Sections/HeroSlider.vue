@@ -43,7 +43,7 @@ defineProps({
             <h2 class="text-4xl md:text-7xl font-bold text-white mb-4">{{ slide.title }}</h2>
             <p class="text-white md:text-2xl mb-6">{{ slide.desc }}</p>
             <Link v-if="slide.link" :href="slide.link" class="bg-primary hover:bg-transparent text-white hover:text-white border border-transparent hover:border-white font-semibold px-4 py-2 rounded-full inline-block">
-              Shop Now
+              Xem thêm
             </Link>
           </div>
         </div>

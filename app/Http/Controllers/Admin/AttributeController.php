@@ -22,7 +22,7 @@ class AttributeController extends Controller implements HasMiddleware
 
             new Middleware('can:attributes.edit', only: ['edit', 'update']),
 
-            new Middleware('can:attributes.delete', only: ['destroy']),
+            new Middleware('can:attributes.delete', only: ['destroy', 'restore', 'forceDelete']),
         ];
     }
     /**
@@ -31,14 +31,28 @@ class AttributeController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $perPage = $request->input('perPage', 10);
+        $status = $request->input('status', 'active');
+        $searchTerm = $request->input('search');
+
         $query = Attribute::query()->with('values');
-        if ($request->filled('search')) {
-            $query->where('attribute_name', 'ilike', '%' . $request->search . '%');
+
+        if ($status === 'trash') {
+            $query->onlyTrashed();
         }
+
+        if ($request->filled('search')) {
+            $query->where('attribute_name', 'ilike', '%' . $searchTerm . '%');
+        }
+
         $attributes = $query->latest()->paginate($perPage)->withQueryString();
+
         return Inertia::render('admin/Attributes/Index', [
             'attributes' => $attributes,
-            'filters' => $request->only(['search', 'perPage'])
+            'filters' => [
+                'search' => $searchTerm,
+                'perPage' => (int) $perPage,
+                'status' => $status
+            ]
         ]);
     }
     /**
@@ -157,32 +171,82 @@ class AttributeController extends Controller implements HasMiddleware
         $isUsed = $attribute->values()->whereHas('productVariants')->exists();
 
         if ($isUsed) {
-            return back()->with('error', "Không thể xóa thuộc tính '{$attribute->attribute_name}' vì đang có sản phẩm sử dụng các giá trị của nó!");
+            return back()->with('error', "Không thể xóa! Thuộc tính '{$attribute->attribute_name}' đang được sử dụng trong các biến thể sản phẩm.");
         }
 
         try {
-            $id = $attribute->id;
             $attributeName = $attribute->attribute_name;
-            return DB::transaction(function () use ($attribute, $id, $attributeName) {
+            
+            DB::transaction(function () use ($attribute) {
+                $attribute->values()->delete(); 
                 $attribute->delete();
+            });
+
+            Logger::log(
+                'Soft Delete Attribute',
+                $attribute,
+                "Đã tạm xóa thuộc tính: {$attributeName}"
+            );
+
+            return redirect()->route('admin.attributes.index')->with('success', 'Thuộc tính đã được chuyển vào thùng rác!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Lỗi khi xóa tạm thời: ' . $e->getMessage());
+        }
+    }
+
+    public function restore($id)
+    {
+        try {
+            $attribute = Attribute::withTrashed()->findOrFail($id);
+            
+            DB::transaction(function () use ($attribute) {
+                $attribute->restore();
+                $attribute->values()->withTrashed()->restore(); 
+            });
+
+            Logger::log(
+                'Restore Attribute',
+                $attribute,
+                "Đã khôi phục thuộc tính: {$attribute->attribute_name}"
+            );
+
+            return back()->with('success', "Đã khôi phục thuộc tính thành công!");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Không thể khôi phục: ' . $e->getMessage());
+        }
+    }
+
+    public function forceDelete($id)
+    {
+        try {
+            $attribute = Attribute::withTrashed()->findOrFail($id);
+
+            $isUsed = $attribute->values()->withTrashed()->whereHas('productVariants')->exists();
+            if ($isUsed) {
+                return back()->with('error', 'Không thể xóa vĩnh viễn! Dữ liệu thuộc tính này vẫn tồn tại trong lịch sử sản phẩm.');
+            }
+
+            $attributeName = $attribute->attribute_name;
+
+            DB::transaction(function () use ($attribute, $id, $attributeName) {
+                $attribute->values()->withTrashed()->forceDelete();
+                $attribute->forceDelete();
 
                 DB::table('activity_logs')->insert([
                     'user_id' => auth()->id(),
-                    'action' => 'Delete Attribute',
+                    'action' => 'Force Delete Attribute',
                     'model_type' => Attribute::class,
                     'model_id' => $id,
                     'description' => "Đã xóa vĩnh viễn thuộc tính: {$attributeName}",
-                    'ip_address' => request()->ip(),
                     'properties' => json_encode(['attribute_name' => $attributeName]),
+                    'ip_address' => request()->ip(),
                     'created_at' => now(),
                 ]);
-
-                return redirect()->route('admin.attributes.index')->with('success', 'Thuộc tính đã được xóa thành công!');
             });
-        } catch (QueryException $e) {
-            return back()->with('error', 'Lỗi hệ thống: ' . $e->getMessage());
+
+            return back()->with('success', 'Đã xóa vĩnh viễn thuộc tính khỏi hệ thống!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+            return back()->with('error', 'Lỗi khi xóa vĩnh viễn: ' . $e->getMessage());
         }
     }
 }

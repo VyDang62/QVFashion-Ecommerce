@@ -13,6 +13,11 @@ import SingleSelect from '@/components/admin/forms/FormElements/SingleSelect.vue
 import FileInput from '@/components/admin/forms/FormElements/FileInput.vue';
 import SubmitButton from '@/components/admin/forms/FormElements/SubmitButton.vue';
 import ToggleSwitch from '@/components/admin/forms/FormElements/ToggleSwitch.vue';
+
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
+
 const props = defineProps({
     genders: Array,
     productTypes: Array,
@@ -136,11 +141,13 @@ const submit = () => {
                             </div>
                             <div>
                                 <InputLabel>Mô tả</InputLabel>
-                                <InputTextArea
-                                    v-model="form.description"
-                                    placeholder="Nhập mô tả"
-                                    :error="form.errors.description"
-                                />
+                                <div class="editor-container">
+                                    <QuillEditor 
+                                        v-model:content="form.description"
+                                        contentType="html"
+                                        :options="editorOptions"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </ComponentCard>
@@ -148,7 +155,7 @@ const submit = () => {
                         <div v-for="(v, index) in form.variants" :key="index" class="p-4 border rounded-xl mb-4 bg-gray-50/50">
                             <div class="grid grid-cols-4 gap-3 mb-4">
                                 <div>
-                                    <InputLabel>Mã định danh (sku)<span class="text-red-500">*</span></InputLabel>
+                                    <InputLabel>Mã định danh (SKU) <span class="text-red-500">*</span></InputLabel>
                                     <Input v-model="v.sku" placeholder="SKU" :error="form.errors[`variants.${index}.sku`]" />
                                 </div>
                                 
@@ -167,9 +174,7 @@ const submit = () => {
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div v-for="attr in attributes" :key="attr.id">
-                                    <InputLabel>
-                                        {{ attr.attribute_name }}
-                                    </InputLabel>
+                                    <InputLabel>{{ attr.attribute_name }}</InputLabel>
                                     
                                     <SingleSelect 
                                         v-model="v.attribute_values[attr.id]" 
@@ -211,7 +216,6 @@ const submit = () => {
                                         @change="(e) => v.image = e.target.files[0]" 
                                         :error="form.errors[`variants.${index}.image`]"
                                     />
-                                    <p class="mt-3 text-[14px] text-gray-600 italic">* Nếu không chọn, sẽ dùng ảnh đại diện sản phẩm.</p>
                                 </div>
                             </div>
                             <button v-if="form.variants.length > 1" @click="removeVariant(index)" type="button" class="mt-2 text-xs text-red-500 font-bold">XÓA DÒNG</button>
@@ -223,7 +227,7 @@ const submit = () => {
                 </div>
 
                 <div class="space-y-6">
-                    <ComponentCard title="Phân loại chi tiết">
+                    <ComponentCard title="Phân loại">
                         <div class="space-y-4">
                             <div>
                                 <InputLabel>Thương hiệu <span class="text-red-500">*</span></InputLabel>

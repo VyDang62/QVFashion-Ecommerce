@@ -48,7 +48,7 @@ const submit = () => {
                                 id="email" 
                                 class="w-full px-4 py-2 border rounded-full focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
                                 :class="form.errors.email ? 'border-red-500' : 'border-gray-300'"
-                                placeholder="name@example.com"
+                                placeholder="name@gmail.com"
                                 required
                                 autofocus
                             >

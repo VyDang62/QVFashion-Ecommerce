@@ -150,7 +150,7 @@ const handleForceDelete = (id) => {
                                 <Link v-if="can('products.edit')" :href="route('admin.products.edit', item.id)" class="text-gray-400 hover:text-blue-600">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/></svg>
                                 </Link>
-                                <DeleteAction v-if="can('products.delete')" :message="`Bạn có muốn tạm xóa sản phẩm ${item.product_name}?. Bạn có thể hoàn tác tại trang ngừng kinh doanh!`" :item="item" routeName="admin.products.destroy" :displayName="item.product_name" />
+                                <DeleteAction v-if="can('products.delete')" :message="`Bạn có chắc chắn muốn tạm xóa sản phẩm ${item.product_name}?`" :item="item" routeName="admin.products.destroy" :displayName="item.product_name" />
                             </template>
                             
                             <template v-else>

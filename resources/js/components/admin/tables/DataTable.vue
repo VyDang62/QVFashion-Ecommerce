@@ -30,8 +30,11 @@ const perPage = defineModel('perPage', { default: 10 })
 
 <template>
   <div class="rounded-2xl border border-gray-200 bg-white">
-    <div class="px-6 py-5 border-b border-gray-100">
+    <div class="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <h3 class="text-base font-medium text-gray-800">{{ title }}</h3>
+      <div class="flex items-center gap-2">
+        <slot name="actions"></slot>
+      </div>
     </div>
 
     <div class="p-4 sm:p-6">
@@ -49,7 +52,7 @@ const perPage = defineModel('perPage', { default: 10 })
             </select>
             <span class="text-sm text-gray-500">entries</span>
           </div>
-
+          
           <div class="relative w-full sm:w-[300px]">
             <input 
               v-model="searchTerm"

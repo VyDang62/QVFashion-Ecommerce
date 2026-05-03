@@ -22,96 +22,104 @@ class FinancialReportController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('can:dashboard.view_financial'),
-            new Middleware('can:dashboard.export_finalcial', only: ['export', 'exportPdf']),
+            new Middleware('can:dashboard.export_financial', only: ['export', 'exportPdf']),
         ];
     }
-
     /**
-     * Logic trung tâm: Tính toán toàn bộ con số tài chính cho QVFashion
-     * ĐÃ ĐIỀU CHỈNH: Phí ship do khách trả (Thu hộ - Chi hộ)
+     * Tạo Query cơ bản để lấy dữ liệu đơn hàng và tính toán giá vốn (COGS)
      */
-
-    private function calculateFinancialData($startDate, $endDate)
+    private function getBaseFinancialQuery($startDate, $endDate, $search = null)
     {
-        $taxRate = Setting::getTaxRate(); // Thuế VAT 10%
-
-        // 1. Tính giá vốn trung bình (COGS) từ các lô hàng
+        //Tạo subquery tính giá nhập trung bình của từng sản phẩm từ các lô hàng
+        //Tính giá vốn (COGS)
         $batchCostSubquery = DB::table('batches')
             ->select('product_variant_id', DB::raw('AVG(purchase_price) as avg_cost'))
             ->groupBy('product_variant_id');
 
-        // 2. Lấy danh sách đơn hàng (Trừ đơn hủy)
-        $orders = Order::query()
+        //Query đơn hàng 
+        $query = Order::query()
             ->leftJoin('order_details', 'orders.id', '=', 'order_details.order_id')
             ->leftJoinSub($batchCostSubquery, 'costs', function ($join) {
                 $join->on('order_details.product_variant_id', '=', 'costs.product_variant_id');
             })
+            //Lọc theo thời gian và bỏ đơn bị hủy
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->where('orders.order_status', '!=', 0)
+            //Công thức tính: SUM(số lượng * giá vốn trung bình)
             ->select(
                 'orders.*',
                 DB::raw('SUM(order_details.quantity * COALESCE(costs.avg_cost, 0)) as total_cogs')
             )
             ->groupBy('orders.id')
-            ->orderBy('orders.created_at', 'desc')
-            ->get();
+            ->orderBy('orders.created_at', 'desc');
 
-        // 3. Tính toán tổng hợp
-        $summary = $orders->reduce(function ($acc, $order) {
+        if ($search) {
+            $query->where('orders.order_code', 'like', "%{$search}%");
+        }
+
+        return $query;
+    }
+    /**
+     * Tính toán số liệu tổng hợp và chuẩn bị dữ liệu danh sách
+     */
+    private function calculateFinancialData($startDate, $endDate, $search = null, $perPage = null)
+    {
+        $taxRate = Setting::getTaxRate();
+        $query = $this->getBaseFinancialQuery($startDate, $endDate, $search);
+
+        $allResultsForSummary = (clone $query)->get();
+        //Duyệt qua tất cả đơn hàng để gom nhóm số liệu
+        $summary = $allResultsForSummary->reduce(function ($acc, $order) {
             $shippingFee = (float) ($order->shipping_fee ?? 0);
             $totalPaidByCustomer = (float) $order->final_amount;
-
-            // Chỉ tính Doanh thu/Lợi nhuận cho đơn đã HOÀN THÀNH (Status 6)
+            // Chỉ tính Doanh thu & Lợi nhuận cho các đơn hàng đã HOÀN THÀNH
             if ($order->order_status == 6) {
-                // DOANH THU THUẦN = Tổng khách trả - Phí ship khách trả
+                //Doanh thu thuần = số tiền khách trả - phí vận chuyển
                 $netGoodsRevenue = $totalPaidByCustomer - $shippingFee;
-
-                $acc['total_revenue'] += $netGoodsRevenue; // Doanh thu hàng hóa sạch
+                $acc['total_revenue'] += $netGoodsRevenue;
                 $acc['total_cogs'] += (float) $order->total_cogs;
                 $acc['total_discount'] += (float) $order->discount_amount;
-                $acc['total_shipping_fee'] += $shippingFee; // Theo dõi phí thu hộ
-                $acc['collected_cash'] += $totalPaidByCustomer; // Tiền thực thu vào ví (có cả ship)
-            } 
-            elseif (!in_array($order->order_status, [0, 10])) {
+                $acc['collected_cash'] += $totalPaidByCustomer;
+                $acc['total_shipping_fee'] += $shippingFee;
+            } elseif (!in_array($order->order_status, [0, 10])) {
                 $acc['pending_cash'] += $totalPaidByCustomer;
             }
             return $acc;
         }, [
-            'total_revenue' => 0,
-            'total_cogs' => 0,
-            'total_discount' => 0,
-            'total_shipping_fee' => 0,
-            'collected_cash' => 0,
-            'pending_cash' => 0,
+            'total_revenue' => 0, 'total_cogs' => 0, 'total_discount' => 0,
+            'collected_cash' => 0, 'pending_cash' => 0, 'total_shipping_fee' => 0,
         ]);
 
-        // 4. Tính toán chỉ số cuối cùng dựa trên doanh thu hàng hóa
-        // Thuế dự tính 10% của Doanh thu hàng hóa (Không đánh thuế lên tiền ship thu hộ)
+        //Tính Thuế dự tính dựa trên doanh thu
         $summary['estimated_tax'] = $summary['total_revenue'] * $taxRate;
-        
-        // Lợi nhuận ròng = Doanh thu hàng - Giá vốn - Thuế
+        //Lợi nhuận ròng = Doanh thu - Giá vốn - Thuế
         $summary['net_profit'] = $summary['total_revenue'] - $summary['total_cogs'] - $summary['estimated_tax'];
 
+        $financialData = $perPage ? $query->paginate($perPage)->withQueryString() : $query->get();
+
         return [
-            'financialData' => $orders,
+            'financialData' => $financialData,
             'summary' => $summary,
             'taxRate' => $taxRate
         ];
     }
 
-    // Các hàm index, export, exportPdf sử dụng hàm calculateFinancialData trên...
-    
     public function index(Request $request)
     {
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : now()->startOfMonth();
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : now()->endOfMonth();
+        
+        $search = $request->input('search');
+        $perPage = $request->input('perPage', 10);
 
-        $report = $this->calculateFinancialData($startDate, $endDate);
+        $report = $this->calculateFinancialData($startDate, $endDate, $search, $perPage);
 
         return Inertia::render('admin/Dashboard/FinancialReport', array_merge($report, [
             'filters' => [
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
+                'search' => $search,
+                'perPage' => (int) $perPage,
             ]
         ]));
     }

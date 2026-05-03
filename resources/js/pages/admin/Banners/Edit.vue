@@ -88,7 +88,7 @@ const submit = () => {
                         </div>
                         
                         <div>
-                            <InputLabel>Thứ tự ưu tiên</InputLabel>
+                            <InputLabel>Thứ tự ưu tiên <span class="text-red-500">*</span></InputLabel>
                             <NumberInput v-model="form.order" placeholder="0" />
                         </div>
 

@@ -15,7 +15,8 @@ return new class extends Migration
         $table->id();
         $table->foreignId('voucher_id')->constrained('vouchers')->onDelete('cascade');
         $table->string('restrict_type'); 
-        $table->unsignedBigInteger('restrict_id'); 
+        $table->unsignedBigInteger('restrict_id');
+        $table->softDeletes();
         $table->timestamps();
         $table->index(['restrict_type', 'restrict_id']);
     });

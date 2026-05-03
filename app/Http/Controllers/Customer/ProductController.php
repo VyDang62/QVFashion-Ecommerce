@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Rating;
 use App\Models\Wishlist;
@@ -191,6 +192,8 @@ class ProductController extends Controller
 
     public function store(Request $request, $productId)
     {
+        $userId = Auth::id();
+
         $validate = $request->validate([
             'score'   => 'required|integer|min:1|max:5',
             'content' => 'required|string|min:1|max:500',
@@ -198,14 +201,28 @@ class ProductController extends Controller
             'content' => 'Nhận xét phải ít hơn 500 ký tự!'
         ]);
 
+        
         $product = Product::findOrFail($productId);
 
-        // $existingReview = Rating::where('product_id', $productId)
-        //                         ->where('user_id', Auth::id())
-        //                         ->first();
-        // if ($existingReview) {
-        //     return back()->with(['error' => 'Bạn đã đánh giá sản phẩm này rồi.']);
-        // }
+        $hasPurchased = Order::where('user_id', $userId)
+            ->where('order_status', 6)
+            ->whereHas('details', function ($query) use ($productId) {
+                $query->whereHas('variant', function ($q) use ($productId) {
+                    $q->where('product_id', $productId);
+                });
+            })
+            ->exists();
+
+        if (!$hasPurchased) {
+            return back()->with(['error' => 'Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và nhận hàng thành công!']);
+        }
+
+        $existingReview = Rating::where('product_id', $productId)
+            ->where('user_id', $userId)
+            ->first();
+        if ($existingReview) {
+            return back()->with(['error' => 'Bạn đã đánh giá sản phẩm này rồi.']);
+        }
 
         try {
             Rating::create([

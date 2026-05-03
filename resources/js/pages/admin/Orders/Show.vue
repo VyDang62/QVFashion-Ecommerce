@@ -23,9 +23,9 @@ const exportToPdf = () => {
 </script>
 
 <template>
-    <Head :title="'Đơn hàng: #' + order.order_code" />
+    <Head :title="'Đơn hàng: ' + order.order_code" />
     <AdminLayout>
-        <PageBreadcrumb :pageTitle="'Chi tiết #' + order.order_code" parentName="Quản lý đơn hàng" :parentRoute="route('admin.orders.index')" />
+        <PageBreadcrumb :pageTitle="'Chi tiết đơn: ' + order.order_code" parentName="Quản lý đơn hàng" :parentRoute="route('admin.orders.index')" />
 
         <div class="flex flex-col gap-4 mb-6">
             <div :class="['p-4 rounded-xl border flex justify-between items-center shadow-sm', order.status_info.bg, order.status_info.class]">

@@ -30,17 +30,29 @@ class BrandController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('perPage',10);
+        $perPage = $request->input('perPage', 10);
+        $status = $request->input('status', 'active');
+        $searchTerm = $request->input('search');
+
         $query = Brand::query();
-        if ($request->filled('search')){
-            $query->where('brand_name','ilike','%'.$request->search.'%');
+
+        if ($status === 'trash') {
+            $query->onlyTrashed();
         }
-        
+
+        if ($request->filled('search')) {
+            $query->where('brand_name', 'ilike', '%' . $searchTerm . '%');
+        }
+
         $brands = $query->latest()->paginate($perPage)->withQueryString();
 
-        return Inertia::render('admin/Brands/Index',[
+        return Inertia::render('admin/Brands/Index', [
             'brands' => $brands,
-            'filters' => $request->only(['search','perPage'])
+            'filters' => [
+                'search' => $searchTerm,
+                'perPage' => (int) $perPage,
+                'status' => $status,
+            ]
         ]);
     }
 
@@ -118,32 +130,72 @@ class BrandController extends Controller implements HasMiddleware
      */
     public function destroy(Brand $brand)
     {
-        if ($brand->products()->exists()) {
-            return back()->with('error', "Không thể xóa! Thương hiệu '{$brand->brand_name}' đang có sản phẩm kinh doanh.");
+        if ($brand->products()->withTrashed()->exists()) {
+            return back()->with('error', "Không thể xóa! Thương hiệu '{$brand->brand_name}' đang gắn liền với các sản phẩm trong hệ thống.");
         }
 
         try {
-            $brandId = $brand->id;
+            $brandName = $brand->brand_name;
+            $brand->delete();
+
+            Logger::log(
+                'Soft Delete Brand',
+                $brand,
+                "Đã tạm xóa thương hiệu: {$brandName}"
+            );
+
+            return redirect()->route('admin.brands.index')->with('success', 'Thương hiệu đã được chuyển vào thùng rác!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Lỗi khi xóa tạm thời: ' . $e->getMessage());
+        }
+    }
+
+    public function restore($id)
+    {
+        try {
+            $brand = Brand::withTrashed()->findOrFail($id);
+            $brand->restore();
+
+            Logger::log(
+                'Restore Brand',
+                $brand,
+                "Đã khôi phục thương hiệu: {$brand->brand_name}"
+            );
+
+            return back()->with('success', "Đã khôi phục thương hiệu {$brand->brand_name} thành công!");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Không thể khôi phục: ' . $e->getMessage());
+        }
+    }
+    public function forceDelete($id)
+    {
+        try {
+            $brand = Brand::withTrashed()->findOrFail($id);
+
+            if ($brand->products()->withTrashed()->exists()) {
+                return back()->with('error', 'Không thể xóa vĩnh viễn! Vẫn còn sản phẩm liên quan đến thương hiệu này!');
+            }
+
             $brandName = $brand->brand_name;
 
-            return DB::transaction(function () use ($brand, $brandId, $brandName) {
-                $brand->delete();
+            DB::transaction(function () use ($brand, $id, $brandName) {
+                $brand->forceDelete();
 
                 DB::table('activity_logs')->insert([
-                    'user_id'     => auth()->id(),
-                    'action'      => 'Delete Brand',
-                    'model_type'  => Brand::class,
-                    'model_id'    => $brandId,
-                    'description' => "Đã xóa thương hiệu: {$brandName}",
-                    'ip_address'  => request()->ip(),
-                    'properties'  => json_encode(['brand_name' => $brandName]),
-                    'created_at'  => now(),
+                    'user_id' => auth()->id(),
+                    'action' => 'Force Delete Brand',
+                    'model_type' => Brand::class,
+                    'model_id' => $id,
+                    'description' => "Đã xóa vĩnh viễn thương hiệu: {$brandName}",
+                    'properties' => json_encode(['brand_name' => $brandName]),
+                    'ip_address' => request()->ip(),
+                    'created_at' => now(),
                 ]);
-                return redirect()->route('admin.brands.index')->with('success', 'Thương hiệu đã được xóa thành công!');
             });
-            
+
+            return back()->with('success', 'Đã xóa vĩnh viễn thương hiệu khỏi hệ thống!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Lỗi hệ thống khi xóa: ' . $e->getMessage());
+            return back()->with('error', 'Lỗi khi xóa vĩnh viễn: ' . $e->getMessage());
         }
     }
 }

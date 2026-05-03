@@ -77,7 +77,7 @@ const menuGroups = [
         name: "Quản lý sản phẩm",
         routeName: "admin.userprofile.index",
         subItems: [
-          { name: "Tất cả sản phẩm", routeName: "admin.products.index", permission: 'products.view' },
+          { name: "Danh sách sản phẩm", routeName: "admin.products.index", permission: 'products.view' },
           { name: "Danh mục", routeName: "admin.categories.index", permission: 'categories.view' },
           { name: "Thương hiệu", routeName: "admin.brands.index", permission: 'brands.view' },
           { name: "Thuộc tính", routeName: "admin.attributes.index", permission: 'attributes.view' },

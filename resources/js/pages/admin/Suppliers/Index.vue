@@ -51,9 +51,9 @@ const handleForceDelete = (id) => {
 </script>
 
 <template>
-    <Head title="Danh sách nhà cung cấp" />
+    <Head title="Nhà cung cấp" />
     <AdminLayout>
-        <PageBreadcrumb pageTitle="Danh sách nhà cung cấp" />
+        <PageBreadcrumb pageTitle="Nhà cung cấp" />
         <div class="space-y-6">
             <div class="flex items-center justify-between">
                 <div class="flex gap-6">
@@ -69,7 +69,7 @@ const handleForceDelete = (id) => {
                         :class="status === 'trash' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                         class="pb-4 px-1 border-b-2 font-bold text-sm transition-all flex items-center gap-2"
                     >
-                        Thùng rác
+                        Ngừng hoạt động
                     </button>
                 </div>
 

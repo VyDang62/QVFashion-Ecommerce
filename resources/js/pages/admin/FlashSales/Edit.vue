@@ -9,7 +9,8 @@ import NumberInput from '@/components/ui/input/NumberInput.vue';
 import SingleSelect from '@/components/admin/forms/FormElements/SingleSelect.vue';
 import SubmitButton from '@/components/admin/forms/FormElements/SubmitButton.vue';
 import ToggleSwitch from '@/components/admin/forms/FormElements/ToggleSwitch.vue';
-
+import { computed } from 'vue';
+import { useFormatter } from '@/composables/useFormatter';
 const props = defineProps({
     flashSale: Object,
     products: Array,
@@ -55,6 +56,24 @@ const submit = () => {
         preserveScroll: true,
     });
 };
+
+const itemsData = computed(() => {
+    return form.items.map((item) => {
+        const product = props.products.find(p => p.id === item.product_id);
+        const variant = product?.variants?.find(v => v.id === item.product_variant_id);
+        
+        const originalPrice = variant ? variant.price : 0;
+        
+        return {
+            originalPrice: originalPrice,
+            isInvalid: item.product_variant_id && item.sale_price >= originalPrice,
+            discountPercent: originalPrice > 0 
+                ? Math.round(((originalPrice - item.sale_price) / originalPrice) * 100) 
+                : 0
+        };
+    });
+});
+const {formatPrice} = useFormatter();
 </script>
 <template>
     <AdminLayout title="Sửa FlashSale">
@@ -97,7 +116,6 @@ const submit = () => {
                         />
                     </div>
                 </ComponentCard>
-                
                 <SubmitButton :processing="form.processing" label="LƯU FLASH SALE" loadingLabel="ĐANG LƯU..." />
         </div>
         <div class="lg:col-span-2 space-y-6">
@@ -131,9 +149,20 @@ const submit = () => {
 
                         <div class="grid grid-cols-3 gap-4">
                             <div>
-                                <InputLabel>Giá Sale <span class="text-red-500">*</span></InputLabel>
-                                <NumberInput v-model="item.sale_price" />
-                                <p v-if="form.errors[`items.${index}.sale_price`]" class="text-red-500 text-xs mt-1">Lỗi giá</p>
+                                <InputLabel>
+                                    Giá Sale <span class="text-red-500">*</span>
+                                    <span v-if="item.product_variant_id">
+                                        (Gốc: {{ formatPrice(itemsData[index].originalPrice) }})
+                                    </span>
+                                </InputLabel>
+                                <NumberInput v-model="item.sale_price" unit="VND"/>
+                                <p v-if="item.product_variant_id && item.sale_price > 0" class="text-sm text-green-700 mt-1">
+                                    Giảm: {{ itemsData[index].discountPercent }}% so với giá gốc
+                                </p>
+
+                                <p v-if="itemsData[index].isInvalid" class="mt-1 text-sm text-red-600 font-medium">
+                                    * Giá sale đang cao hơn hoặc bằng giá gốc
+                                </p>
                             </div>
                             <div>
                                 <InputLabel>Số lượng bán<span class="text-red-500">*</span></InputLabel>

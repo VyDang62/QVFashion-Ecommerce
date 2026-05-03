@@ -58,7 +58,7 @@ class ProductVariant extends Model
         //Nếu biến thể không có ảnh, lấy ảnh chính của sản phẩm cha
         $productImage = ProductImage::where('product_id', $this->product_id)
             ->where('is_primary', true)
-            ->whereNull('variant_id') // Ảnh chung của sản phẩm
+            ->whereNull('variant_id')
             ->first();
 
         if ($productImage) return asset('storage/' . $productImage->image_path);

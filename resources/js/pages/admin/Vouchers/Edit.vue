@@ -78,7 +78,7 @@ const submit = () => {
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <InputLabel>Loại giảm giá</InputLabel>
+                                    <InputLabel>Loại giảm giá <span class="text-red-500">*</span></InputLabel>
                                     <SingleSelect 
                                         v-model="form.voucher_type" 
                                         :options="voucherTypes" 
@@ -87,18 +87,18 @@ const submit = () => {
                                     />
                                 </div>
                                 <div>
-                                    <InputLabel>Giá trị giảm</InputLabel>
+                                    <InputLabel>Giá trị giảm <span class="text-red-500">*</span></InputLabel>
                                     <NumberInput v-model="form.discount_value" :placeholder="form.voucher_type === 'percentage' ? '%' : 'VNĐ'" />
                                 </div>
                             </div>
 
                             <div v-if="form.voucher_type === 'percentage'">
-                                <InputLabel>Số tiền giảm tối đa (VNĐ)</InputLabel>
+                                <InputLabel>Số tiền giảm tối đa (VNĐ) <span class="text-red-500">*</span></InputLabel>
                                 <NumberInput v-model="form.max_discount_amount" />
                             </div>
 
                             <div>
-                                <InputLabel>Giá trị đơn hàng tối thiểu (VNĐ)</InputLabel>
+                                <InputLabel>Giá trị đơn hàng tối thiểu (VNĐ) <span class="text-red-500">*</span></InputLabel>
                                 <NumberInput v-model="form.min_order_value" />
                             </div>
                         </div>
@@ -150,16 +150,16 @@ const submit = () => {
                                     <NumberInput v-model="form.usage_limit" placeholder="Không giới hạn" />
                                 </div>
                                 <div>
-                                    <InputLabel>Lượt dùng/Khách</InputLabel>
+                                    <InputLabel>Mỗi khách được dùng <span class="text-red-500">*</span></InputLabel>
                                     <NumberInput v-model="form.per_user_limit" />
                                 </div>
                             </div>
                             <div>
-                                <InputLabel>Ngày bắt đầu</InputLabel>
+                                <InputLabel>Ngày bắt đầu <span class="text-red-500">*</span></InputLabel>
                                 <input type="datetime-local" v-model="form.start_date" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm" />
                             </div>
                             <div>
-                                <InputLabel>Ngày kết thúc</InputLabel>
+                                <InputLabel>Ngày kết thúc <span class="text-red-500">*</span></InputLabel>
                                 <input type="datetime-local" v-model="form.end_date" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm" />
                             </div>
                         </div>

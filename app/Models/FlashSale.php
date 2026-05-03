@@ -24,6 +24,12 @@ class FlashSale extends Model
         return $this->hasMany(FlashSaleItem::class);
     }
 
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'flash_sale_id');
+    }
+
+
     public function scopeCurrent($query)
     {
         return $query->where('is_active',true)

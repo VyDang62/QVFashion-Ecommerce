@@ -31,7 +31,7 @@ class HomeController extends Controller
                     }]);
                 })
         ->active();
-        $popularProducts = (clone $productQuery)->latest()->take(4)->get();
+        $popularProducts = (clone $productQuery)->orderByDesc('order_count')->take(4)->get();
         $latestProducts = (clone $productQuery)->latest()->take(4)->get();
 
         $banners = Banner::where('is_active', true)

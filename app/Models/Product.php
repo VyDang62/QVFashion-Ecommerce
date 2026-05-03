@@ -12,7 +12,7 @@ class Product extends Model
     
     protected $dates = ['deleted_at'];
     protected $fillable = [
-        'product_name', 'sku', 'product_description', 
+        'product_name', 'sku', 'product_description', 'slug',
         'brand_id', 'category_id', 'is_active', 'is_featured','meta_title','meta_description','meta_keywords'
     ];
 
@@ -63,24 +63,43 @@ class Product extends Model
             FlashSaleItem::class, 
             ProductVariant::class, 
             'product_id', 
-            'product_variant_id'
-        )->join('flash_sales', 'flash_sales.id', '=', 'flash_sale_items.flash_sale_id')
-        ->where('flash_sales.is_active', true)
-        ->where('flash_sales.start_date', '<=', now())
-        ->where('flash_sales.end_date', '>=', now())
+            'product_variant_id',
+            'id',
+            'id'
+        )
+        ->whereHas('flashSale', function ($query) {
+            $query->current();
+        })
         ->whereColumn('flash_sale_items.sold_quantity', '<', 'flash_sale_items.sale_quantity');
     }
     protected static function booted()
     {
         static::creating(function ($product) {
             if (empty($product->slug)) {
-                $product->slug = Str::slug($product->product_name);
+                $product->slug = static::generateUniqueSlug($product->product_name);
             }
         });
 
         static::updating(function ($product) {
-            $product->slug = Str::slug($product->product_name);
+            if ($product->isDirty('product_name')) {
+                $product->slug = static::generateUniqueSlug($product->product_name, $product->id);
+            }
         });
     }
-    
+
+    private static function generateUniqueSlug($name, $excludeId = null)
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $i = 1;
+        while (static::where('slug', $slug)
+                    ->when($excludeId, function($query, $id) {
+                        return $query->where('id', '!=', $id);
+                    })
+                    ->exists()) {
+            $slug = $originalSlug . '-' . $i++;
+        }
+
+        return $slug;
+    }
 }

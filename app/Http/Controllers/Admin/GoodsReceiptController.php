@@ -261,18 +261,26 @@ class GoodsReceiptController extends Controller implements HasMiddleware
             return back()->with('error', 'Chỉ có thể duyệt phiếu ở trạng thái chờ xử lý.');
         }
 
-        if($goodsreceipt->details()->Empty()){
-            return back()->with('error','Không thể duyệt phiếu nhập không có sản phẩm!');
+        if (!$goodsreceipt->details()->exists()) {
+            return back()->with('error', 'Không thể duyệt phiếu nhập không có sản phẩm!');
         }
         try{
             DB::transaction(function () use ($goodsreceipt) {
+                $goodsreceipt = GoodsReceipt::where('id', $goodsreceipt->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$goodsreceipt || $goodsreceipt->receipt_status !== 'pending') {
+                    throw new \Exception("Phiếu nhập không hợp lệ hoặc đã được xử lý bởi người khác.");
+                }
+
                 $goodsreceipt->update(['receipt_status' => 'completed']);
 
                 foreach ($goodsreceipt->details as $item) {
                     Batch::create([
                         'product_variant_id' => $item->product_variant_id,
                         'goods_receipt_id'   => $goodsreceipt->id,
-                        'batch_code'         => 'BATCH-' . $goodsreceipt->receipt_code . '-' . $item->product_vanriant_id,
+                        'batch_code'         => 'BATCH-' . $goodsreceipt->receipt_code . '-' . $item->product_variant_id,
                         'purchase_price'     => $item->purchase_price,
                         'original_quantity'  => $item->received_quantity,
                         'remaining_quantity' => $item->received_quantity,

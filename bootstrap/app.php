@@ -51,13 +51,23 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
-            return Inertia::render('admin/Errors/Forbidden')
+            $page = $request->is('admin/*') || $request->is('admin') 
+                    ? 'admin/Errors/Forbidden' 
+                    : 'customer/Errors/Forbidden';
+
+            return Inertia::render($page)
                 ->toResponse($request)
                 ->setStatusCode(403);
         });
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-            return Inertia::render('admin/Errors/NotFound')
+            if ($request->is('admin/*') || $request->is('admin')) {
+                return Inertia::render('admin/Errors/NotFound')
+                    ->toResponse($request)
+                    ->setStatusCode(404);
+            }
+
+            return Inertia::render('customer/Errors/NotFound')
                 ->toResponse($request)
                 ->setStatusCode(404);
         });

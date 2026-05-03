@@ -100,22 +100,10 @@ const submit = () => {
                         </div>
                     </div>
                 </ComponentCard>
-
-                <div class="flex justify-end gap-3">
-                    <Link 
-                        :href="route('admin.inventory.batches')" 
-                        class="px-8 py-3 bg-white text-gray-600 font-bold rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all text-sm"
-                    >
-                        HỦY BỎ
-                    </Link>
-                    <SubmitButton 
-                        :processing="form.processing" 
-                        label="LƯU ĐIỀU CHỈNH" 
-                        loadingLabel="ĐANG CẬP NHẬT..." 
-                        class="px-10"
-                    />
-                </div>
+                <SubmitButton :processing="form.processing" label="LƯU ĐIỀU CHỈNH" loadingLabel="ĐANG CẬP NHẬT..." class="px-10"/>
             </div>
+            
         </form>
+        
     </AdminLayout>
 </template>

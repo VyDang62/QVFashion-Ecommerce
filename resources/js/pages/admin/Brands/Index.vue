@@ -7,8 +7,11 @@ import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import PageBreadcrumb from '@/components/admin/common/PageBreadcrumb.vue';
 import DataTable from '@/components/admin/tables/DataTable.vue';
 import DeleteAction from '@/components/admin/actions/DeleteAction.vue';
+import ConfirmAction from '@/components/admin/actions/ConfirmAction.vue';
 import { usePermission } from '@/composables/usePermission';
-const {can} = usePermission();
+
+const { can } = usePermission();
+
 const props = defineProps({
     brands: {
         type: Object,
@@ -16,59 +19,143 @@ const props = defineProps({
     },
     filters: {
         type: Object,
-        default: () => ({ search: '', perPage: 10 })
+        default: () => ({ search: '', perPage: 10, status: 'active' })
     }
 });
 
 const tableHeaders = ['Thương hiệu', 'Thao tác'];
 const searchTerm = ref(props.filters?.search || '');
 const perPage = ref(props.filters?.perPage || 10);
+const status = ref(props.filters?.status || 'active');
 
-watch([searchTerm,perPage], debounce(([newSearch, newPerPage]) => {
-    router.get(route('admin.brands.index'), { search: newSearch, perPage: newPerPage }, {
+watch([searchTerm, perPage, status], debounce(([newSearch, newPerPage, newStatus]) => {
+    router.get(route('admin.brands.index'), { 
+        search: newSearch, 
+        perPage: newPerPage, 
+        status: newStatus
+    }, {
         preserveState: true,
         replace: true,
         preserveScroll: true
     });
 }, 500));
+
+const handleRestore = (id) => {
+    router.post(route('admin.brands.restore', id), {}, {
+        preserveScroll: true,
+    });
+};
+
+const handleForceDelete = (id) => {
+    router.delete(route('admin.brands.forcedelete', id), {}, {
+        preserveScroll: true,
+    });
+}
 </script>
 
 <template>
     <Head title="Quản lý thương hiệu" />
     <AdminLayout>
         <PageBreadcrumb pageTitle="Thương hiệu" />
+
         <div class="space-y-6">
-            <div class="flex items-center justify-end">
-                <Link
-                    v-if="can('brands.create')"
+            <div class="flex items-center justify-between">
+                <div class="flex gap-6">
+                    <button 
+                        @click="status = 'active'"
+                        :class="status === 'active' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                        class="pb-4 px-1 border-b-2 font-bold text-sm transition-all"
+                    >
+                        Đang hoạt động
+                    </button>
+                    <button 
+                        @click="status = 'trash'"
+                        :class="status === 'trash' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                        class="pb-4 px-1 border-b-2 font-bold text-sm transition-all flex items-center gap-2"
+                    >
+                        Ngừng hoạt động
+                    </button>
+                </div>
+                
+                <Link 
+                    v-if="status === 'active' && can('brands.create')" 
                     :href="route('admin.brands.create')" 
                     class="px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-width="2" stroke-linecap="round"/></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
                     THÊM THƯƠNG HIỆU
                 </Link>
             </div>
+
             <DataTable 
-                title="Thương hiệu"
+                :title="status === 'active' ? 'Danh sách thương hiệu' : 'Thương hiệu ngừng hoạt động'"
                 :headers="tableHeaders"
                 :items="brands?.data"
                 :pagination="brands"
                 v-model:search="searchTerm"
                 v-model:per-page="perPage"
-                searchPlaceholder="Tìm theo tên..."
+                searchPlaceholder="Tìm theo tên thương hiệu..."
             >
                 <template #row="{ item }">
-                    <td class="px-5 py-4 font-medium text-gray-800 text-md">{{ item.brand_name || 'N/A' }}</td>
+                    <td class="px-5 py-4 font-medium text-gray-800">{{ item.brand_name || 'N/A' }}</td>
+                    
                     <td class="px-5 py-4 text-right">
                         <div class="flex items-center justify-begin gap-3">
-                            <Link v-if="can('brands.edit')" :href="route('admin.brands.edit', item.id)" class="text-gray-400 hover:text-blue-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/></svg>
-                            </Link>
-                            <DeleteAction
-                                v-if="can('brands.delete')"
-                                :item="item"
-                                routeName="admin.brands.destroy"
-                                :displayName="item.brand_name"    
-                            />
+                            <template v-if="status === 'active'">
+                                <Link 
+                                    v-if="can('brands.edit')" 
+                                    :href="route('admin.brands.edit', item.id)" 
+                                    class="text-gray-400 hover:text-blue-600 transition-colors"
+                                >
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/>
+                                    </svg>
+                                </Link>
+                                <DeleteAction
+                                    v-if="can('brands.delete')"
+                                    :message="`Bạn có chắc chắn muốn tạm xóa thương hiệu ${item.brand_name}?`"
+                                    :item="item"
+                                    routeName="admin.brands.destroy"
+                                    :displayName="item.brand_name"    
+                                />
+                            </template>
+
+                            <template v-else>
+                                <ConfirmAction
+                                    v-if="can('brands.delete')"
+                                    title="Khôi phục thương hiệu"
+                                    :message="`Bạn có muốn khôi phục lại thương hiệu ${item.brand_name}?`"
+                                    variant="primary"
+                                    confirm-text="Khôi phục"
+                                    @confirm="handleRestore(item.id)"
+                                >
+                                    <template #trigger>
+                                        <button class="text-gray-400 hover:text-green-600 transition-colors" title="Khôi phục">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </template>
+                                </ConfirmAction>
+
+                                <ConfirmAction
+                                    v-if="can('brands.delete')"
+                                    title="Xóa vĩnh viễn"
+                                    :message="`Cảnh báo: Bạn có muốn xóa vĩnh viễn thương hiệu ${item.brand_name}? Hành động này không thể hoàn tác!`"
+                                    variant="danger"
+                                    confirm-text="Xóa vĩnh viễn"
+                                    @confirm="handleForceDelete(item.id)"
+                                >
+                                    <template #trigger>
+                                        <button class="text-gray-400 hover:text-red-600 transition-colors" title="Xóa vĩnh viễn">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </template>
+                                </ConfirmAction>
+                            </template>
                         </div>
                     </td>
                 </template>

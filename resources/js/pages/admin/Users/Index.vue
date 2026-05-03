@@ -35,7 +35,7 @@ const roleOptions = [
     { id: '', name: 'Tất cả vai trò' },
     { id: 'super-admin', name: 'Super Admin' },
     { id: 'customer', name: 'Khách hàng' },
-    { id: 'sales', name: 'Nhân viên bán hàng' },
+    { id: 'sales-staff', name: 'Nhân viên bán hàng' },
     { id: 'warehouse-manager', name: 'Quản lý kho' },
 ];
 
@@ -69,7 +69,7 @@ const getRoleBadge = (roleName) => {
     const styles = {
         'super-admin': 'error',
         'customer': 'success',
-        'sales': 'warning',
+        'sales-staff': 'warning',
         'warehouse-manager': 'primary',
     };
     return styles[roleName] || 'light';
@@ -79,7 +79,7 @@ const getRoleLabel = (roleName) => {
         'super-admin': 'Super Admin',
         'admin': 'Quản trị viên',
         'customer': 'Khách hàng',
-        'sales staff': 'Nhân viên bán hàng',
+        'sales-staff': 'Nhân viên bán hàng',
         'warehouse-manager': 'Quản lý kho',
     };
     return labels[roleName] || roleName;
@@ -103,7 +103,7 @@ const handleForceDelete = (id) => {
 </script>
 
 <template>
-    <Head title="Quản lý người dùng" />
+    <Head title="Tài khoản người dùng" />
     <AdminLayout>
         <PageBreadcrumb pageTitle="Người dùng" />
         <div class="space-y-6">
@@ -136,7 +136,7 @@ const handleForceDelete = (id) => {
                     <Link v-if="status === 'active' && can('users.create')" :href="route('admin.users.create')" 
                           class="px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-width="2" stroke-linecap="round"/></svg>
-                        THÊM MỚI
+                        THÊM NGƯỜI DÙNG
                     </Link>
                 </div>
             </div>
@@ -201,7 +201,7 @@ const handleForceDelete = (id) => {
                                 <template v-if="item.id !== auth.user.id">
                                     <DeleteAction
                                         v-if="can('users.delete') && canManageTarget(item)"
-                                        :message="`Bạn có muốn tạm xóa người dùng ${item.full_name}?. Bạn có thể hoàn tác tại trang ngừng hoạt động!`"
+                                        :message="`Bạn có chắc chắn muốn tạm xóa người dùng ${item.full_name}?`"
                                         :item="item"
                                         route-name="admin.users.destroy"
                                         :display-name="item.full_name"
@@ -212,7 +212,7 @@ const handleForceDelete = (id) => {
                                     <ConfirmAction
                                         v-if="can('users.edit') && canManageTarget(item)"
                                         :title="item.is_active ? 'Khóa tài khoản' : 'Mở khóa tài khoản'"
-                                        :message="`Bạn có chắc chắn muốn ${item.is_active ? 'khóa' : 'mở khóa'} tài khoản của ${item.full_name}? Người dùng này sẽ ${item.is_active ? 'không thể' : 'có thể'} đăng nhập lại!`"
+                                        :message="`Bạn có chắc chắn muốn ${item.is_active ? 'khóa' : 'mở khóa'} tài khoản của ${item.full_name}?`"
                                         :confirm-text="item.is_active ? 'Xác nhận khóa' : 'Mở khóa ngay'"
                                         :variant="item.is_active ? 'danger' : 'success'"
                                         @confirm="toggleStatus(item)"

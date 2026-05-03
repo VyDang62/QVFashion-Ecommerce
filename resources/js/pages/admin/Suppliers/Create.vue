@@ -30,15 +30,15 @@ const submit = () => {
                     <ComponentCard title="Thông tin cơ bản">
                         <div class="space-y-4">
                             <div>
-                                <InputLabel>Tên nhà cung cấp (*)</InputLabel>
+                                <InputLabel>Tên nhà cung cấp <span class="text-red-500">*</span></InputLabel>
                                 <Input v-model="form.supplier_name" placeholder="Nhập tên nhà cung cấp" :error="form.errors.supplier_name" />
                             </div>
                             <div>
-                                <InputLabel>Số điện thoại (*)</InputLabel>
+                                <InputLabel>Số điện thoại <span class="text-red-500">*</span></InputLabel>
                                 <Input v-model="form.phone" placeholder="Nhập số điện thoại" :error="form.errors.phone" />
                             </div>
                             <div>
-                                <InputLabel>Địa chỉ (*)</InputLabel>
+                                <InputLabel>Địa chỉ <span class="text-red-500">*</span></InputLabel>
                                 <Input v-model="form.supplier_address" placeholder="Nhập địa chỉ" :error="form.errors.supplier_address" />
                             </div>
                         </div>

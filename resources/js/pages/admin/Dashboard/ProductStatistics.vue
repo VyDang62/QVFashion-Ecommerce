@@ -58,8 +58,7 @@
           </div>
         </div>
       </div>
-
-      <div class="grid grid-cols-12 gap-6">
+      <div class="grid grid-cols-1 gap-6">
         <div class="col-span-12 xl:col-span-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <h3 class="text-lg font-bold text-gray-800 mb-6">Tỷ trọng doanh thu danh mục</h3>
           <div v-if="categoryStats.length > 0">
@@ -69,8 +68,9 @@
             Chưa có dữ liệu
           </div>
         </div>
-
-        <div class="col-span-12 xl:col-span-8 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      </div>
+      <div class="grid grid-cols-1 gap-6">
+        <div class="col-span-1 xl:col-span-1 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <h3 class="text-lg font-bold text-gray-800 mb-6">Phân tích lợi nhuận chi tiết</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left">
@@ -174,13 +174,13 @@ const props = defineProps({
     lowPerformance: { type: Array, default: () => [] }, 
 });
 
-// KHỞI TẠO FORM LỌC TỪ PROPS CỦA SERVER
+//Khởi tạo form lọc
 const filterForm = reactive({
     start_date: props.filters.start_date,
     end_date: props.filters.end_date
 });
 
-// HÀM GỬI YÊU CẦU LỌC
+//Gửi yêu cầu lọc dữ liệu
 const applyFilters = () => {
     router.get(route('admin.dashboard.productstatistics'), filterForm, {
         preserveState: true,
@@ -194,7 +194,19 @@ const resetFilters = () => {
     filterForm.end_date = '';
     applyFilters();
 };
-// Cấu hình Biểu đồ cột ngang (Dùng computed để tự động cập nhật khi dữ liệu thay đổi)
+//Top 10 sản phẩm bán chạy
+const sellingColors = [
+    '#1e3a8a', 
+    '#1e40af', 
+    '#1d4ed8', 
+    '#2563eb', 
+    '#3b82f6', 
+    '#4f46e5',
+    '#6366f1', 
+    '#4338ca', 
+    '#3730a3',
+    '#312e81' 
+];
 const sellingSeries = computed(() => [{
     name: 'Số lượng bán',
     data: props.topSelling.map(item => item.total_qty)
@@ -202,9 +214,21 @@ const sellingSeries = computed(() => [{
 
 const sellingOptions = computed(() => ({
     chart: { type: 'bar', fontFamily: 'Outfit, sans-serif', toolbar: { show: false } },
-    plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '50%' } },
-    colors: ['#465FFF'],
-    xaxis: { categories: props.topSelling.map(item => item.name) },
+    plotOptions: { 
+        bar: { 
+            horizontal: true, 
+            borderRadius: 4, 
+            barHeight: '50%',
+            distributed: true 
+        } 
+    },
+    colors: sellingColors.slice(0, props.topRevenue.length),
+    xaxis: { 
+        categories: props.topSelling.map(item => item.name),
+        labels: { show: false }, 
+        axisBorder: { show: false }, 
+        axisTicks: { show: false },  
+    },
     yaxis: {
         labels: {
             show: true,
@@ -212,10 +236,11 @@ const sellingOptions = computed(() => ({
             maxWidth: 180, 
         }
     },
-    tooltip: { shared: true, intersect: false }
+    tooltip: { shared: true, intersect: false },
+    legend: {show:false}
 }));
 
-// Cấu hình Biểu đồ Donut
+//Cấu hình Biểu đồ tròn
 const categoryOptions = computed(() => ({
     labels: props.categoryStats.map(c => c.name),
     colors: ['#465FFF', '#9CB9FF', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'],
@@ -266,6 +291,19 @@ const getMarginClass = (margin) => {
     if (val < 15) return 'text-orange-600 bg-orange-50'; 
     return 'text-green-600 bg-green-50';               
 };
+//Top 10 sản phẩm doanh thu cao
+const revenueColors = [
+    '#022c22', 
+    '#064e3b', 
+    '#065f46', 
+    '#047857', 
+    '#059669', 
+    '#10b981', 
+    '#34d399', 
+    '#14b8a6', 
+    '#0d9488', 
+    '#0f766e' 
+];
 
 const revenueSeries = computed(() => [{
     name: 'Doanh thu thực tế',
@@ -282,12 +320,12 @@ const revenueOptions = computed(() => ({
             distributed: true 
         } 
     },
-    colors: ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0', '#D1FAE5'], 
+    colors: revenueColors.slice(0, props.topRevenue.length),
     xaxis: { 
         categories: props.topRevenue.map(item => item.name),
         labels: {
             formatter: (val) => formatPrice(val),
-            style: { fontSize: '11px' }
+            style: { fontSize: '12px' }
         }
     },
     yaxis: {

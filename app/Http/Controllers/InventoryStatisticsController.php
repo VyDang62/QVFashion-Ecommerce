@@ -24,7 +24,7 @@ class InventoryStatisticsController extends Controller implements HasMiddleware
     }
     public function index(Request $request)
     {
-        // 1. Giá trị tồn kho theo Danh mục (Dùng Treemap)
+        //Giá trị tồn kho theo Danh mục (Dùng biểu đồ Treemap)
         $inventoryValue = DB::table('batches')
             ->join('product_variants', 'batches.product_variant_id', '=', 'product_variants.id')
             ->join('products', 'product_variants.product_id', '=', 'products.id')
@@ -37,7 +37,7 @@ class InventoryStatisticsController extends Controller implements HasMiddleware
             ->groupBy('category')
             ->get();
 
-        // 2. Cảnh báo sắp hết hàng (Dựa trên low_stock_threshold)
+        //Cảnh báo sắp hết hàng
         $lowStockItems = DB::table('product_variants')
             ->join('products', 'product_variants.product_id', '=', 'products.id')
             ->whereRaw('product_variants.stock_quantity <= product_variants.low_stock_threshold')
@@ -52,9 +52,7 @@ class InventoryStatisticsController extends Controller implements HasMiddleware
             ->limit(10)
             ->get();
 
-        // 3. Phân tích Biên lợi nhuận theo Lô hàng (Batch Margin)
-        // So sánh giá nhập của lô cũ vs lô mới cho cùng 1 sản phẩm
-
+        //Phân tích Biên lợi nhuận theo Lô hàng
         $perPage = $request->input('perPage', 10);
         $search = $request->input('search');
 
@@ -82,10 +80,10 @@ class InventoryStatisticsController extends Controller implements HasMiddleware
 
         $batchAnalysis = $batchQuery->paginate($perPage)->withQueryString();
 
-        // 4. Tính Vòng quay hàng tồn kho (Turnover Rate - Ước tính 30 ngày)
+        //Tính Vòng quay hàng tồn kho (Turnover Rate - Ước tính 30 ngày)
         $cogs30Days = DB::table('order_details')
             ->join('orders', 'order_details.order_id', '=', 'orders.id')
-            ->join('batches', 'order_details.product_variant_id', '=', 'batches.product_variant_id') // Ước tính theo giá nhập lô gần nhất
+            ->join('batches', 'order_details.product_variant_id', '=', 'batches.product_variant_id')
             ->where('orders.order_status', 6)
             ->where('orders.created_at', '>=', now()->subDays(30))
             ->sum(DB::raw('order_details.quantity * batches.purchase_price'));

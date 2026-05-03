@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\FlashSaleItem;
 use App\Models\Order;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -82,15 +85,14 @@ class OrderHistoryController extends Controller
 
                     //Hoàn Voucher
                     if ($order->voucher_id) {
-                        \App\Models\Voucher::where('id', $order->voucher_id)->decrement('used_count');
-                        \App\Models\VoucherUsage::where('order_id', $order->id)->delete();
+                        Voucher::where('id', $order->voucher_id)->decrement('used_count');
+                        VoucherUsage::where('order_id', $order->id)->delete();
                     }
 
                     //Hoàn Flash Sale
-                    foreach ($order->details as $detail) {
-                        if ($detail->flash_sale_id) {
-                            DB::table('flash_sale_items')
-                                ->where('flash_sale_id', $detail->flash_sale_id)
+                    foreach($order->details as $detail){
+                        if($detail->flash_sale_id){
+                            FlashSaleItem::where('flash_sale_id', $detail->flash_sale_id)
                                 ->where('product_variant_id', $detail->product_variant_id)
                                 ->decrement('sold_quantity', $detail->quantity);
                         }

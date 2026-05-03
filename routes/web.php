@@ -90,7 +90,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('reset-password', [AdminNewPasswordController::class, 'store'])->name('password.store');
     });
 
-    Route::middleware(['auth','role:super-admin|warehouse-manager|sale'])->group(function (){
+    Route::middleware(['auth','role:super-admin|warehouse-manager|sales-staff'])->group(function (){
         Route::get('/home', function () {
             return Inertia::render('admin/Dashboard');
         })->name('home');
@@ -120,8 +120,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.forcedelete')->withTrashed();;
         
         Route::resource('brands', BrandController::class);
+        Route::post('brands/{id}/restore', [BrandController::class, 'restore'])->name('brands.restore');
+        Route::delete('brands/{id}/force-delete', [BrandController::class, 'forceDelete'])->name('brands.forcedelete')->withTrashed();;
+
         Route::resource('attributes', AttributeController::class);
         Route::resource('producttypes', ProductTypeController::class);
+        Route::post('producttypes/{id}/restore', [ProductTypeController::class, 'restore'])->name('producttypes.restore');
+        Route::delete('producttypes/{id}/force-delete', [ProductTypeController::class, 'forceDelete'])->name('producttypes.forcedelete')->withTrashed();;
+
         Route::resource('roles', RoleController::class);
         Route::resource('suppliers', SupplierController::class);
         Route::post('suppliers/{id}/restore', [SupplierController::class, 'restore'])->name('suppliers.restore');

@@ -20,7 +20,7 @@ const status = ref(props.filters.status || 'active');
 const searchTerm = ref(props.filters.search || '');
 const perPage = ref(props.filters.perPage || 10);
 
-const tableHeaders = ['Mã / Loại', 'Giá trị giảm', 'Sử dụng', 'Thời hạn', 'Hoạt động', 'Thao tác'];
+const tableHeaders = ['Mã / Loại', 'Giá trị giảm', 'Sử dụng', 'Thời hạn', 'Trạng thái', 'Thao tác'];
 
 watch([searchTerm, perPage, status], debounce(([newSearch, newPerPage, newStatus]) => {
     router.get(route('admin.vouchers.index'), { 
@@ -35,7 +35,7 @@ const handleRestore = (id) => {
 };
 
 const handleForceDelete = (id) => {
-    router.delete(route('admin.vouchers.forceDelete', id), {}, { preserveScroll: true });
+    router.delete(route('admin.vouchers.forcedelete', id), {}, { preserveScroll: true });
 }
 
 const getUsagePercentage = (used, limit) => {
@@ -97,11 +97,11 @@ const {formatPrice, formatDateTime} = useFormatter();
 
                     <td class="px-5 py-4">
                         <div class="flex flex-col gap-1 w-32">
-                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                            <div class="flex justify-between text-sm font-bold text-gray-500">
                                 <span>{{ item.used_count }}/{{ item.usage_limit || '∞' }}</span>
-                                <span>{{ getUsagePercentage(item.used_count, item.usage_limit) }}%</span>
+                                <span v-if="item.usage_limit">{{ getUsagePercentage(item.used_count, item.usage_limit) }}%</span>
                             </div>
-                            <div class="h-1.5 w-full bg-gray-100 text-xs rounded-full overflow-hidden">
+                            <div v-if="item.usage_limit" class="h-1.5 w-full bg-gray-100 text-sm rounded-full overflow-hidden">
                                 <div class="h-full bg-blue-500 transition-all" :style="{ width: getUsagePercentage(item.used_count, item.usage_limit) + '%' }"></div>
                             </div>
                         </div>
@@ -136,7 +136,7 @@ const {formatPrice, formatDateTime} = useFormatter();
                                 <Link v-if="can('vouchers.edit')" :href="route('admin.vouchers.edit', item.id)" class="text-gray-400 hover:text-blue-600">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/></svg>
                                 </Link>
-                                <DeleteAction v-if="can('vouchers.delete')" :message="`Tạm xóa mã ${item.code}?`" :item="item" routeName="admin.vouchers.destroy" :displayName="item.code" />
+                                <DeleteAction v-if="can('vouchers.delete')" :message="`Bạn có chắc chắn muốn tạm xóa mã giảm giá ${item.code}?`" :item="item" routeName="admin.vouchers.destroy" :displayName="item.code" />
                             </template>
                             
                             <template v-else>

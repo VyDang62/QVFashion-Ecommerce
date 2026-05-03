@@ -59,8 +59,8 @@ const editorOptions = {
 
 <template>
     <AdminLayout title="Thêm trang tĩnh">
-        <Head title="Tạo trang mới" />
-        <PageBreadcrumb pageTitle="Tạo trang mới" parentName="Trang tĩnh" :parentRoute="route('admin.pages.index')" />
+        <Head title="Thêm trang mới" />
+        <PageBreadcrumb pageTitle="Thêm trang mới" parentName="Trang tĩnh" :parentRoute="route('admin.pages.index')" />
 
         <form @submit.prevent="submit" class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20">
             <div class="lg:col-span-8 space-y-6">
@@ -139,7 +139,7 @@ const editorOptions = {
                 <div class="sticky top-6">
                     <SubmitButton 
                         :processing="form.processing" 
-                        label="TẠO TRANG" 
+                        label="THÊM TRANG" 
                         class="w-full shadow-lg shadow-blue-500/30" 
                     />
                 </div>

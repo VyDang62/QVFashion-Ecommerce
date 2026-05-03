@@ -36,7 +36,7 @@ const handleRestore = (id) => {
 };
 
 const handleForceDelete = (id) => {
-    router.delete(route('admin.banners.delete', id), {}, {
+    router.delete(route('admin.banners.forcedelete', id), {}, {
         preserveScroll: true,
     });
 }
@@ -118,7 +118,7 @@ const handleForceDelete = (id) => {
                                 <Link v-if="can('banners.edit')" :href="route('admin.banners.edit', item.id)" class="text-gray-400 hover:text-blue-600 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/></svg>
                                 </Link>
-                                <DeleteAction v-if="can('banners.delete')" :message="`Bạn có muốn tạm xóa banner này?`" :item="item" routeName="admin.banners.destroy" :displayName="item.title || 'Banner'" />
+                                <DeleteAction v-if="can('banners.delete')" :message="`Bạn có chắc chắn muốn tạm xóa Banner này?`" :item="item" routeName="admin.banners.destroy" :displayName="item.title || 'Banner'" />
                             </template>
                             
                             <template v-else>

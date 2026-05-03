@@ -23,14 +23,12 @@ const voucherInput = ref('');
 const appliedVoucher = ref(null);
 const status = ref(null);
 const statusType = ref('success');
+const isProcessing = ref(false);
 
 const applyVoucher = async () => {
     if (!page.props.auth.user) {
-        router.visit(route('login'), {
-            method: 'get',
-        });
-    } else {
-        router.visit(route('checkout'));
+        router.visit(route('login'));
+        return;
     }
 
     if (!voucherInput.value) {
@@ -38,6 +36,9 @@ const applyVoucher = async () => {
         statusType.value = 'error';
         return;
     }
+
+    isProcessing.value = true;
+    status.value = null;
 
     try {
         const response = await axios.post(route('cart.applyvoucher'), { 
@@ -52,17 +53,17 @@ const applyVoucher = async () => {
     } catch (error) {
         appliedVoucher.value = null;
         statusType.value = 'error';
-        if (error.response) {
-            status.value = error.response?.data?.message || "Mã giảm giá không hợp lệ";
-        } else {
-            status.value = "Không thể kết nối đến máy chủ";
-        }
+        status.value = error.response?.data?.message || "Mã giảm giá không hợp lệ";
+    } finally {
+        isProcessing.value = false;
     }
 }
 
 const finalTotal = computed(() => {
-    const discount = appliedVoucher.value ? appliedVoucher.value.discount_amount : 0;
-    return cartTotal.value - discount;
+    if (appliedVoucher.value) {
+        return appliedVoucher.value.new_total;
+    }
+    return cartTotal.value;
 });
 
 const removeItem = (id) => {
@@ -109,7 +110,15 @@ const clearCart = () => {
                                         <tr v-for="item in cartItems" :key="item.id" class="group">
                                             <td class="p-6">
                                                 <div class="flex items-center gap-4">
-                                                    <img :src="item.image" class="h-20 w-20 rounded-lg object-cover border border-gray-100 shadow-sm" alt="Product image">
+                                                    <div class="relative h-20 w-20 flex-shrink-0">
+                                                        <img :src="item.image" 
+                                                            class="h-full w-full rounded-lg object-cover border border-gray-100 shadow-sm" 
+                                                            alt="Product image">
+                                                        <span v-if="item.is_flash_sale" 
+                                                            class="absolute top-0 left-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-tl-lg rounded-br-lg shadow-sm uppercase tracking-tighter">
+                                                            SALE
+                                                        </span>
+                                                    </div>
                                                     <div>
                                                         <h4 class="font-bold text-gray-900 uppercase text-sm mb-1">{{ item.name }}</h4>
                                                         <p class="text-xs text-gray-800 italic">{{ item.variant_info }}</p>
@@ -161,6 +170,7 @@ const clearCart = () => {
                                                 placeholder="Mã giảm giá" 
                                                 class="border border-gray-300 rounded-l-full px-6 focus:outline-none focus:border-primary w-full lg:w-64 transition-colors uppercase h-full text-sm"
                                                 @input="voucherInput = voucherInput.toUpperCase()"
+                                                @keyup.enter.prevent="applyVoucher"
                                                 :disabled="appliedVoucher"
                                             >
                                             <button 

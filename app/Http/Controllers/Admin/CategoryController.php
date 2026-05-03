@@ -85,7 +85,7 @@ class CategoryController extends Controller implements HasMiddleware
         ]);
 
         $category = Category::create($validate);
-        Cache::forget('menu_categories');
+        Cache::forget('menu_categories_data');
 
         Logger::log(
             'Create Category',
@@ -154,7 +154,7 @@ class CategoryController extends Controller implements HasMiddleware
 
         $oldData = $category->only('category_name', 'parent_id');
         $category->update($validate);
-        Cache::forget('menu_categories');
+        Cache::forget('menu_categories_data');
 
         Logger::log(
             'Update Category',
@@ -184,7 +184,7 @@ class CategoryController extends Controller implements HasMiddleware
 
             $categoryName = $category->category_name;
             $category->delete();
-            Cache::forget('menu_categories');
+            Cache::forget('menu_categories_data');
 
             Logger::log(
                 'Soft Delete Category',
@@ -204,7 +204,7 @@ class CategoryController extends Controller implements HasMiddleware
         $category = Category::withTrashed()->findOrFail($id);
         
         $category->restore();
-        Cache::forget('menu_categories');
+        Cache::forget('menu_categories_data');
 
         Logger::log(
             'Restore Category',
@@ -232,7 +232,7 @@ class CategoryController extends Controller implements HasMiddleware
             DB::transaction(function () use ($category, $id, $categoryName) {
                 $category->forceDelete();
 
-                Cache::forget('menu_categories');
+                Cache::forget('menu_categories_data');
 
                 DB::table('activity_logs')->insert([
                     'user_id' => auth()->id(),

@@ -14,7 +14,7 @@ class OrderObserver
     {
         $order->load('user');
 
-        $admins = User::role(['super-admin', 'sales'])->get();
+        $admins = User::role(['super-admin', 'sales-staff'])->get();
 
         if ($admins->isNotEmpty()) {
             Notification::send($admins, new NewOrderNotification($order));

@@ -14,14 +14,14 @@ const props = defineProps({
     userRoles: Array,
 });
 
-// Form 1: Thông tin cơ bản
+//Form 1: Thông tin cơ bản
 const infoForm = useForm({
     full_name: props.user.full_name,
     email: props.user.email,
     roles: props.userRoles || [],
 });
 
-// Form 2: Mật khẩu
+//Form 2: Mật khẩu
 const passwordForm = useForm({
     password: '',
     password_confirmation: '',
@@ -46,9 +46,9 @@ const submitPassword = () => {
 </script>
 
 <template>
-    <AdminLayout title="Chỉnh sửa người dùng">
-        <Head title="Chỉnh sửa người dùng" />
-        <PageBreadcrumb pageTitle="Chỉnh sửa người dùng" parentName="Người dùng" :parentRoute="route('admin.users.index')" />
+    <AdminLayout title="Sửa người dùng">
+        <Head title="Sửa người dùng" />
+        <PageBreadcrumb pageTitle="Sửa người dùng" parentName="Người dùng" :parentRoute="route('admin.users.index')" />
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
             
@@ -75,7 +75,7 @@ const submitPassword = () => {
                                 <p class="mt-3 text-[14px] text-gray-600 italic">* Mặc định là <strong class="text-brand-500">customer</strong> nếu không chọn!</p>
                             </div>
                             <div class="flex justify-end pt-4">
-                                <SubmitButton :processing="infoForm.processing" label="LƯU THÔNG TIN" loadingLabel="ĐANG LƯU..." />
+                                <SubmitButton :processing="infoForm.processing" label="CẬP NHẬT THÔNG TIN" loadingLabel="ĐANG LƯU..." />
                             </div>
                         </div>
                     </ComponentCard>

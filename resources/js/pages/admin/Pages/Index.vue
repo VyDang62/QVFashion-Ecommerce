@@ -65,14 +65,14 @@ const {formatDate} = useFormatter();
                         :class="status === 'trash' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                         class="pb-4 px-1 border-b-2 font-bold text-sm transition-all flex items-center gap-2"
                     >
-                        Thùng rác
+                        Ngừng hoạt động
                     </button>
                 </div>
 
                 <Link v-if="status === 'active' && can('pages.create')" :href="route('admin.pages.create')" 
                       class="px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-width="2" stroke-linecap="round"/></svg>
-                    THÊM TRANG MỚI
+                    THÊM TRANG TĨNH
                 </Link>
             </div>
 
@@ -116,7 +116,7 @@ const {formatDate} = useFormatter();
                                 
                                 <DeleteAction
                                     v-if="can('pages.delete')"
-                                    :message="`Bạn có muốn chuyển trang '${item.title}' vào thùng rác?`" 
+                                    :message="`Bạn có chắc chắn muốn tạm xóa trang ${item.title}?`" 
                                     :item="item" 
                                     routeName="admin.pages.destroy" 
                                     :displayName="item.title" 
