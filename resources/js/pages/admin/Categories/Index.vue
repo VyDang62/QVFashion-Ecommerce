@@ -22,7 +22,7 @@ const props = defineProps({
     }
 });
 
-const tableHeaders = ['Danh mục','Cấp độ','Danh mục cha','Giới tính','Loại sản phẩm', 'Thao tác'];
+const tableHeaders = ['ID','Danh mục','Cấp độ','Danh mục cha','Giới tính','Loại sản phẩm', 'Thao tác'];
 const searchTerm = ref(props.filters?.search || '');
 const perPage = ref(props.filters?.perPage || 10);
 const status = ref(props.filters?.status || 'active');
@@ -95,6 +95,9 @@ const handleForceDelete = (id) => {
             >
             
                 <template #row="{ item }">
+                    <td class="px-5 py-4">
+                        <p class="text-sm text-gray-800 font-medium">#{{item.id}}</p>
+                    </td>
                     <td class="px-5 py-4">
                         <div class="flex items-center">
                             <span v-if="item.parent_id" class="text-gray-400 mr-2">-</span>

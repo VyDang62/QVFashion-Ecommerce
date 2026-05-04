@@ -22,7 +22,7 @@ const props = defineProps({
     }
 });
 
-const tableHeaders = ['Mã phiếu', 'Nhà cung cấp', 'Ngày nhập', 'Tổng tiền', 'Trạng thái', 'Thao tác'];
+const tableHeaders = ['ID / Mã phiếu', 'Nhà cung cấp', 'Ngày nhập', 'Tổng tiền', 'Trạng thái', 'Thao tác'];
 const searchTerm = ref(props.filters?.search || '');
 const perPage = ref(props.filters?.perPage || 10);
 const statusFilter = ref(props.filters?.status || '');
@@ -61,7 +61,7 @@ const getStatusClass = (status) => {
 const getStatusLabel = (status) => {
     const labels = {
         'pending': 'Chờ xử lý',
-        'completed': 'Đã nhập kho',
+        'completed': 'Đã hoàn thành',
         'cancelled': 'Đã hủy'
     };
     return labels[status] || status;
@@ -101,10 +101,15 @@ const getStatusLabel = (status) => {
                 searchPlaceholder="Tìm theo mã phiếu hoặc NCC..."
             >
                 <template #row="{ item }">
-                    <td class="px-5 py-4 font-bold text-blue-600 text-sm">{{ item.receipt_code }}</td>
+                    <td class="px-5 py-4">
+                        <div class="font-bold text-blue-600 text-sm">#{{ item.id }}</div>
+                        <div class="text-sm text-gray-600 " :title="item.order_code">
+                            {{ item.receipt_code }}
+                        </div>
+                    </td>
                     <td class="px-5 py-4 text-sm">
                         <div class="font-medium text-gray-800">{{ item.supplier?.supplier_name }}</div>
-                        <div class="text-xs text-gray-400">Người lập: {{ item.user?.name }}</div>
+                        <div class="text-xs text-gray-400">Người lập: {{ item.user?.full_name }}</div>
                     </td>
                     <td class="px-5 py-4 text-gray-600 text-sm">
                         {{ new Date(item.created_at).toLocaleDateString('vi-VN') }}

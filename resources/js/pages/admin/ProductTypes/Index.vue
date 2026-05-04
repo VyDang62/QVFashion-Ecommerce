@@ -23,7 +23,7 @@ const props = defineProps({
     }
 });
 
-const tableHeaders = ['Loại sản phẩm', 'Thao tác'];
+const tableHeaders = ['ID','Loại sản phẩm', 'Thao tác'];
 const searchTerm = ref(props.filters?.search || '');
 const perPage = ref(props.filters?.perPage || 10);
 const status = ref(props.filters?.status || 'active');
@@ -95,6 +95,9 @@ const handleForceDelete = (id) => {
                 searchPlaceholder="Tìm theo tên..."
             >
                 <template #row="{ item }">
+                    <td class="px-5 py-4">
+                        <p class="text-sm text-gray-800 font-medium">#{{item.id}}</p>
+                    </td>
                     <td class="px-5 py-4 font-medium text-gray-800 text-md">{{ item.type_name || 'N/A' }}</td>
                     
                     <td class="px-5 py-4 text-right">

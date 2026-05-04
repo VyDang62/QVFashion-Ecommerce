@@ -20,7 +20,7 @@ const status = ref(props.filters.status || 'active');
 const searchTerm = ref(props.filters.search || '');
 const perPage = ref(props.filters.perPage || 10);
 
-const tableHeaders = ['Sản phẩm', 'Thương hiệu / Danh mục', 'Giá bán', 'Tồn kho', 'Trạng thái', 'Thao tác'];
+const tableHeaders = ['ID','Sản phẩm', 'Thương hiệu / Danh mục', 'Giá bán', 'Tồn kho', 'Trạng thái', 'Thao tác'];
 
 watch([searchTerm, perPage, status], debounce(([newSearch, newPerPage, newStatus]) => {
     router.get(route('admin.products.index'), { 
@@ -104,6 +104,9 @@ const handleForceDelete = (id) => {
                 searchPlaceholder="Tìm theo tên hoặc sku..."
             >
                 <template #row="{ item }">
+                    <td class="px-5 py-4">
+                        <p class="text-sm text-gray-800 font-medium">#{{item.id}}</p>
+                    </td>
                     <td class="px-5 py-4">
                         <div class="flex items-center gap-3">
                             <img :src="getPrimaryImage(item)" class="w-12 h-12 rounded-lg object-cover border" />

@@ -150,7 +150,7 @@ class VoucherController extends Controller implements HasMiddleware
      */
     public function show(Voucher $voucher)
     {
-        $voucher->load(['restrictions','usages' => function($query){
+        $voucher->load(['restrictions.restrictedItem','usages' => function($query){
             $query->with('user')->latest('used_at')->limit(10);
         }]);
 

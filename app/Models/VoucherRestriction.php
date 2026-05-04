@@ -12,6 +12,10 @@ class VoucherRestriction extends Model
     protected $fillable = ['voucher_id', 'restrict_type', 'restrict_id'];
 
     public function voucher() { return $this->belongsTo(Voucher::class); }
+    public function restrictedItem()
+    {
+        return $this->morphTo(__FUNCTION__, 'restrict_type', 'restrict_id');
+    }
 
     public function restrictable()
     {

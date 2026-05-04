@@ -148,9 +148,26 @@ const displayDiscountValue = computed(() => {
                     <ComponentCard title="Điều kiện áp dụng">
                         <div v-if="voucher.restrictions?.length > 0" class="flex flex-wrap gap-2">
                             <div v-for="res in voucher.restrictions" :key="res.id" class="flex items-center gap-2 p-2 bg-blue-50/50 rounded-xl border border-blue-100">
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                <span class="text-[10px] font-black text-blue-700 uppercase">{{ res.restrict_type }}</span>
-                                <span class="text-[10px] font-bold text-gray-500">#{{ res.restrict_id }}</span>
+                                <span class="w-2 h-2 rounded-full" 
+                                    :class="{
+                                        'bg-orange-500': res.restrict_type === 'product',
+                                        'bg-green-500': res.restrict_type === 'category',
+                                        'bg-blue-500': res.restrict_type === 'brand'
+                                    }">
+                                </span>
+
+                                <span class="text-[9px] font-black text-blue-800 uppercase px-1.5 py-0.5 bg-blue-100 rounded-md">
+                                    {{ res.restrict_type }}
+                                </span>
+                                <span class="text-xs font-bold text-gray-700">
+                                    {{ 
+                                        res.restricted_item?.product_name || 
+                                        res.restricted_item?.category_name || 
+                                        res.restricted_item?.name || 
+                                        'N/A' 
+                                    }}
+                                </span>
+                                <span class="text-[9px] font-medium text-gray-400">#{{ res.restrict_id }}</span>
                             </div>
                         </div>
                         <div v-else class="text-center py-6">
