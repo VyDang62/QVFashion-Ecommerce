@@ -19,7 +19,7 @@ class ProductController extends Controller
     public function show($slug)
     {
         $product = Product::query()
-            ->select(['id','product_name','slug','product_description','brand_id','category_id'])
+            ->select(['id','product_name','slug','product_description','brand_id','category_id','meta_title','meta_description','meta_keywords'])
             ->where('slug',$slug)
             ->with([
                 'brand:id,brand_name',
@@ -104,8 +104,8 @@ class ProductController extends Controller
         $primaryImage = $product->images->where('is_primary',true)->first() ?? $product->images->first();
         $metaImage = $primaryImage ? asset('storage/' . $primaryImage->image_path) : asset('assets/images/placeholder.jpg');
 
-        $plainDescription = strip_tags($product->product_description);
-        $metaDescription = Str::limit($plainDescription,160);
+        //$plainDescription = strip_tags($product->meta_description ?? $product->product_description);
+        $metaDescription = Str::limit($product->meta_description ?? $product->product_description, 160);
 
         $minPrice = $product->variants->min('price');
         return Inertia::render('customer/ProductDetail', [
@@ -115,7 +115,7 @@ class ProductController extends Controller
             'ratingsCount' => $ratingsCount,
             'relatedProducts' => $relatedProducts->map(fn($p) => $this->formatProduct($p)),
             'seo' => [
-                'title' => $product->product_name . ' - ' . ($product->brand->brand_name ?? 'Shop Thời Trang'),
+                'title' => $product->meta_title ?? $product->product_name . ' - ' . ($product->brand->brand_name ?? 'Shop Thời Trang'),
                 'description' => $metaDescription,
                 'image' => $metaImage,
                 'url' => URL::current(),

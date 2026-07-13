@@ -123,11 +123,6 @@ const props = defineProps({
                             </div>
                         </div>
 
-                        <div class="flex justify-end gap-3">
-                            <button class="px-8 py-3 bg-white border border-gray-200 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-300">
-                                <i class="fas fa-print mr-2"></i>In đơn hàng
-                            </button>
-                        </div>
                     </main>
                 </div>
             </div>

@@ -80,13 +80,13 @@ class InventoryStatisticsController extends Controller implements HasMiddleware
 
         $batchAnalysis = $batchQuery->paginate($perPage)->withQueryString();
 
-        //Tính Vòng quay hàng tồn kho (Turnover Rate - Ước tính 30 ngày)
+        //Tính Vòng quay hàng tồn kho (Turnover Rate - Ước tính 30 ngày) =  Giá vốn bán hàng (30 ngày gần nhất) / Giá trị tồn kho hiện tại
         $cogs30Days = DB::table('order_details')
             ->join('orders', 'order_details.order_id', '=', 'orders.id')
             ->join('batches', 'order_details.product_variant_id', '=', 'batches.product_variant_id')
             ->where('orders.order_status', 6)
             ->where('orders.created_at', '>=', now()->subDays(30))
-            ->sum(DB::raw('order_details.quantity * batches.purchase_price'));
+            ->sum(DB::raw('order_details.quantity * batches.purchase_price')); //Số lượng bán * Giá nhập
 
         $totalInventoryValue = DB::table('batches')->sum(DB::raw('remaining_quantity * purchase_price::bigint'));
         $turnoverRate = $totalInventoryValue > 0 ? round($cogs30Days / $totalInventoryValue, 2) : 0;

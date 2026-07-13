@@ -6,12 +6,13 @@ use Illuminate\Support\Facades\Http;
 class GHNService{
     protected $token;
     protected $shopId;
-    protected $baseUrl = 'https://dev-online-gateway.ghn.vn/shiip/public-api/';
+    protected $baseUrl;
 
     public function __construct()
     {
         $this->token = config('services.ghn.token');
         $this->shopId = config('services.ghn.shop_id');
+        $this->baseUrl = config('services.ghn.base_url');
     }
     //Lấy danh sách Tỉnh/Thành
     public function getProvinces()

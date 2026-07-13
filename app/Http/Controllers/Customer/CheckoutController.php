@@ -214,7 +214,7 @@ class CheckoutController extends Controller
             return redirect()->route('orderhistory')->with('error', 'Chữ ký không hợp lệ!');
         }
 
-        $order = Order::findOrFail($request->vnp_TxnRef);
+        $order = Order::findOrFail($request->vnp_TxnRef); //vnp_TxnRef là order id
 
         if ($request->vnp_ResponseCode == '00') {
             DB::transaction(function () use ($order, $request) {

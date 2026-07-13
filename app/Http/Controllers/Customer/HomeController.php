@@ -37,7 +37,7 @@ class HomeController extends Controller
         $banners = Banner::where('is_active', true)
             ->where('position', 'home_slider')
             ->orderBy('order')
-            ->limit(3)
+            ->limit(5)
             ->get(['title', 'subtitle', 'image_path', 'link_url']);
 
         return Inertia::render('customer/Index', [

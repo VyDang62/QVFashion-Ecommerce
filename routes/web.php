@@ -218,23 +218,21 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/page/{slug}', [\App\Http\Controllers\Customer\PageController::class, 'show'])->name('pages.show');
 //Debug
 Route::get('/test-offline-notification', function () {
-    // 1. Lấy ID variant
+    //Lấy ID variant
     $variantId = request('id');
     $variant = ProductVariant::with('product')->find($variantId);
 
     if (!$variant) return "Không thấy Variant!";
 
-    // 2. Lấy TẤT CẢ Admin (hoặc Warehouse Manager) 
-    // Kể cả những người đang không đăng nhập
+    //Lấy TẤT CẢ Admin (hoặc Warehouse Manager) 
     $admins = User::role(['super-admin', 'warehouse-manager'])->get();
 
     if ($admins->isEmpty()) return "Không tìm thấy Admin nào trong DB để gửi!";
 
-    // 3. Gửi cho cả dàn Admin
+    //Gửi cho Admin
     Notification::send($admins, new LowStockNotification($variant));
 
-    return "Hệ thống đã bí mật gửi thông báo cho " . $admins->count() . " Admin. 
-            Bây giờ hãy thử dùng tài khoản Admin khác để đăng nhập và xem cái chuông nhé!";
+    return "Hệ thống đã gửi thông báo cho " . $admins->count() . " Admin!";
 });
 
 

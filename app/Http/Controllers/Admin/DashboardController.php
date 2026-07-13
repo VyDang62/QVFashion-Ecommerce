@@ -30,18 +30,18 @@ class DashboardController extends Controller implements HasMiddleware
         $startOfCurrentMonth = now()->startOfMonth();
         $startOfLastMonth = now()->subMonth()->startOfMonth();
         $endOfLastMonth = now()->subMonth()->endOfMonth();
-
+        //Tính giá vốn trung bình cho mỗi biến thể
         $batchCostSubquery = DB::table('batches')
             ->select('product_variant_id', DB::raw('AVG(purchase_price) as avg_purchase_price'))
             ->groupBy('product_variant_id');
 
-        //Công thức tính Doanh thu hàng hóa
+        //Công thức tính Doanh thu thực tế của từng sản phẩm: Subtotal - (Subtotal/TotalCost * DiscountAmount)
         $actualRevenueSql = "order_details.sub_total - 
             (CASE WHEN orders.total_cost > 0 
                   THEN (order_details.sub_total::float / orders.total_cost * orders.discount_amount) 
                   ELSE 0 END)";
         
-        //Công thức Lợi nhuận ròng: (Doanh thu hàng sạch * 0.9) - COGS
+        //Công thức Lợi nhuận ròng: (Doanh thu thực tế * 0.9) - COGS
         //(Nhân 0.9 tương đương với việc trừ đi 10% thuế trên doanh thu)
         $netProfitSql = "(($actualRevenueSql) * (1 - $taxRate)) - (COALESCE(costs.avg_purchase_price, 0) * order_details.quantity)";
 
@@ -157,7 +157,7 @@ class DashboardController extends Controller implements HasMiddleware
 
         $results = $query->addSelect([
             DB::raw("SUM($actualRevenueSql) as revenue"),
-            DB::raw("SUM($netProfitSql) as profit"), // Đã đồng bộ trừ thuế
+            DB::raw("SUM($netProfitSql) as profit"),
             DB::raw('COUNT(DISTINCT orders.id) as order_count')
         ])->groupBy('time_unit')->get();
 

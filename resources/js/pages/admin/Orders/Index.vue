@@ -112,7 +112,7 @@ const statusOptions = [
                                     <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </Link>
-                            <Link v-if="(item.order_status !== 0 && item.order_status !== 6 && item.order_status !== 2) && can('orders.edit')" :href="route('admin.orders.edit', item.id)" class="text-gray-400 hover:text-orange-600 transition-colors" title="Cập nhật trạng thái">
+                            <Link v-if="(item.order_status !== 0 && item.order_status !== 6 && item.order_status !== 2 && item.order_status !== 10) && can('orders.edit')" :href="route('admin.orders.edit', item.id)" class="text-gray-400 hover:text-orange-600 transition-colors" title="Cập nhật trạng thái">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="1.5"/>
                                 </svg>

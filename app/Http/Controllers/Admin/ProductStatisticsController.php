@@ -28,13 +28,13 @@ class ProductStatisticsController extends Controller implements HasMiddleware
             ? Carbon::parse($request->input('end_date'))->endOfDay() 
             : now()->endOfMonth();
 
-        //Subquery tính giá vốn trung bình (COGS)
+        //Tính giá vốn trung bình cho mỗi biến thể
         $batchCostSubquery = DB::table('batches')
             ->select('product_variant_id', DB::raw('AVG(purchase_price) as avg_purchase_price'))
             ->groupBy('product_variant_id');
 
         //Tinh doanh thu thực tế của từng sản phẩm
-        //Công thức: Giá trị hàng - (Tỷ lệ đóng góp vào đơn hàng * Tổng giảm giá Voucher)
+        //Công thức tính Doanh thu thực tế của từng sản phẩm: Subtotal - (Subtotal/TotalCost * DiscountAmount)
         $actualRevenueSql = "order_details.sub_total - 
             (CASE WHEN orders.total_cost > 0 
                   THEN (order_details.sub_total::float / orders.total_cost * orders.discount_amount) 
@@ -91,15 +91,18 @@ class ProductStatisticsController extends Controller implements HasMiddleware
                 ];
             }
             
-            if ($item->parent_id) {
+            if ($item->parent_id) { //Nếu là danh mục con
+                //Cộng doanh thu và lợi nhuận vào Tổng của cha
                 $hierarchicalStats[$pId]['revenue'] += $revenue;
                 $hierarchicalStats[$pId]['profit'] += $profit;
+                //Đẩy thông tin chi tiết của con vào mảng children của cha
                 $hierarchicalStats[$pId]['children'][] = [
                     'name' => $item->cat_name,
                     'revenue' => $revenue,
                     'profit' => $profit
                 ];
             } else {
+                //Nếu là danh mục cha, cộng danh thu và lợi nhuận vào chính nó
                 $hierarchicalStats[$pId]['revenue'] += $revenue;
                 $hierarchicalStats[$pId]['profit'] += $profit;
             }

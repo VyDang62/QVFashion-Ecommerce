@@ -400,7 +400,7 @@ const isFiltering = computed(() => {
                                 Xóa tìm kiếm
                             </button>
                         </div>
-                        <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-x-2 sm:gap-x-0 lg:gap-x-4 gap-y-8 lg:gap-y-12">
+                        <div class="grid grid-cols-3 gap-x-2 sm:gap-x-0 lg:gap-x-4 gap-y-8 lg:gap-y-12">
                             <ShopProductCard
                                 v-for="product in products.data"
                                 :key="product.id"
@@ -409,7 +409,6 @@ const isFiltering = computed(() => {
                         </div>
                         <AppPaginate :links="products.links"/>
                     </main>
-
                 </div>
             </div>
         </div>

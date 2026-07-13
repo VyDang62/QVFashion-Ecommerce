@@ -45,7 +45,7 @@ class FinancialReportController extends Controller implements HasMiddleware
             //Lọc theo thời gian và bỏ đơn bị hủy
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->where('orders.order_status', '!=', 0)
-            //Công thức tính: SUM(số lượng * giá vốn trung bình)
+            //Tính tổng vốn từng đơn: SUM(số lượng * giá vốn trung bình)
             ->select(
                 'orders.*',
                 DB::raw('SUM(order_details.quantity * COALESCE(costs.avg_cost, 0)) as total_cogs')
@@ -69,6 +69,7 @@ class FinancialReportController extends Controller implements HasMiddleware
 
         $allResultsForSummary = (clone $query)->get();
         //Duyệt qua tất cả đơn hàng để gom nhóm số liệu
+        //Accumulator (Tích lũy)
         $summary = $allResultsForSummary->reduce(function ($acc, $order) {
             $shippingFee = (float) ($order->shipping_fee ?? 0);
             $totalPaidByCustomer = (float) $order->final_amount;

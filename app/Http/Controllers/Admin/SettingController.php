@@ -84,7 +84,7 @@ class SettingController extends Controller implements HasMiddleware
                         
                         if ($oldValue != $value) {
                             Setting::set($key, $value, $setting->type, $setting->group);
-                            Cache::forget("setting.{$key}");
+                            Cache::forget("settings.{$key}");
                             
                             $changes[$key] = [
                                 'old' => $oldValue,

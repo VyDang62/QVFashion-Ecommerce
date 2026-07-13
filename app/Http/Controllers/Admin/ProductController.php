@@ -253,6 +253,10 @@ class ProductController extends Controller  implements HasMiddleware
                     'brand_id'            => $request->brand_id,
                     'category_id'         => $request->category_id,
                     'is_active'           => $request->is_active ?? true,
+                    'is_featured'         => $request->is_featured ?? false,
+                    'meta_title' => $request->meta_title ?? $request->product_name,
+                    'meta_description' => $request->meta_description,
+                    'meta_keywords' => $request->meta_keywords,
                 ]);
 
                 $basePath = "uploads/products/{$product->slug}";
