@@ -54,21 +54,35 @@ php artisan queue:work
 ## Screenshots of Public Pages
 
 ### Home Page 
+
 <img width="548" height="840" alt="Picture1" src="https://github.com/user-attachments/assets/b6b446f8-7341-4f10-80c0-1757f42f461d" />
+
 ### Product List Page
+
 <img width="548" height="873" alt="Picture2" src="https://github.com/user-attachments/assets/1c3ef4ec-1654-4ca6-a797-b643ef01456a" />
+
 ### Product Detail Page
+
 <img width="856" height="1161" alt="image" src="https://github.com/user-attachments/assets/30328cb8-c6d1-4fe6-a4d1-c16f57a72f9a" />
+
 ### Cart Page
+
 <img width="856" height="604" alt="image" src="https://github.com/user-attachments/assets/c179fc24-3fbf-4aa7-9c61-3d2edf1505f4" />
+
 ### Checkout Page
+
 <img width="856" height="760" alt="image" src="https://github.com/user-attachments/assets/44fff454-eddc-46ed-8ec0-8d718fd19907" />
 
 ## Screenshots of Admin Panel
 
 ### Statistics Page
+
 <img width="856" height="815" alt="image" src="https://github.com/user-attachments/assets/184f0f9c-1f89-487d-8309-7ef522a29da2" />
+
 ### Order Management Page
+
 <img width="856" height="576" alt="image" src="https://github.com/user-attachments/assets/ef08fd4e-4a25-4354-a8e4-9891f0e487a0" />
+
 ### Product Management Page
+
 <img width="856" height="611" alt="image" src="https://github.com/user-attachments/assets/4041c56a-38bd-48bb-a87e-cfd063082e9a" />
